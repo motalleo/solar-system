@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#030509" />
+    <meta
+      name="description"
+      content="沉浸式 3D 太阳系互动探索，支持行星聚焦、时间控制、真实比例与自动巡航。"
+    />
+    <title>太阳系互动探索</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23030509'/%3E%3Ccircle cx='32' cy='32' r='9' fill='%23f5c76f'/%3E%3Cellipse cx='32' cy='32' rx='24' ry='10' fill='none' stroke='%238ec9e6' stroke-width='2' transform='rotate(-20 32 32)'/%3E%3C/svg%3E" />
+    <link rel="preload" href="./assets/textures/sun.jpg" as="image" />
+    <link rel="stylesheet" href="./style.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+  </head>
+  <body data-app-state="loading">
+    <a class="skip-link" href="#body-nav">跳到星球导航</a>
+
+    <main id="experience" aria-label="3D 太阳系互动探索">
+      <canvas id="space-canvas" aria-label="太阳系三维场景"></canvas>
+      <div class="vignette" aria-hidden="true"></div>
+      <div class="film-grain" aria-hidden="true"></div>
+
+      <section id="loading-screen" class="screen-layer loading-screen" aria-live="polite">
+        <div class="loading-layout">
+          <div class="loading-orbit" aria-hidden="true">
+            <span></span>
+            <i></i>
+          </div>
+          <div class="loading-copy">
+            <p class="eyebrow">SOLAR SYSTEM ARCHIVE</p>
+            <p class="loading-title">正在校准星图</p>
+            <div class="loading-meter" aria-hidden="true">
+              <span id="loading-progress"></span>
+            </div>
+            <div class="loading-meta">
+              <span id="loading-percent">0%</span>
+              <span id="loading-status">初始化 WebGL 环境</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="intro-screen" class="screen-layer intro-screen" aria-labelledby="intro-title" hidden>
+        <div class="intro-content">
+          <p class="eyebrow">一场从恒星到冰巨星的旅程</p>
+          <h1 id="intro-title">进入太阳系<br />看见尺度与光</h1>
+          <p class="intro-summary">穿越八颗行星，观察它们在黑暗中运行。</p>
+          <button id="start-exploring" class="primary-action" type="button" disabled>
+            <span>开始探索</span>
+            <span aria-hidden="true">↗</span>
+          </button>
+        </div>
+        <div class="intro-coordinate" aria-hidden="true">
+          <span>LOCAL STAR</span>
+          <strong>01 AU</strong>
+        </div>
+      </section>
+
+      <div id="app-shell" class="app-shell" hidden>
+        <header class="top-bar">
+          <div class="identity-block">
+            <span class="identity-mark" aria-hidden="true"></span>
+            <div>
+              <p>太阳系档案</p>
+              <span id="view-state">自由探索</span>
+            </div>
+          </div>
+
+          <div class="top-actions" aria-label="视图工具">
+            <button id="overview-button" class="icon-button text-button" type="button" aria-label="返回太阳系全景">
+              全景
+            </button>
+            <button id="sound-button" class="icon-button" type="button" aria-label="开启环境音效" aria-pressed="false">
+              <span class="button-glyph" aria-hidden="true">◒</span>
+              <span class="button-label">声音</span>
+            </button>
+            <button id="fullscreen-button" class="icon-button" type="button" aria-label="进入全屏">
+              <span class="button-glyph frame-glyph" aria-hidden="true"></span>
+              <span class="button-label">全屏</span>
+            </button>
+            <button id="settings-button" class="icon-button" type="button" aria-label="打开设置" aria-expanded="false">
+              <span class="button-glyph settings-glyph" aria-hidden="true"></span>
+              <span class="button-label">设置</span>
+            </button>
+          </div>
+        </header>
+
+        <nav id="body-nav" class="body-nav glass-panel" aria-label="星球导航"></nav>
+
+        <aside id="info-panel" class="info-panel glass-panel" aria-live="polite" aria-hidden="true">
+          <button id="close-info" class="panel-close" type="button" aria-label="关闭星球信息">关闭</button>
+          <div class="info-heading">
+            <p id="info-english">EARTH</p>
+            <h2 id="info-name">地球</h2>
+          </div>
+          <p id="info-description" class="info-description"></p>
+          <dl id="info-facts" class="facts-grid"></dl>
+        </aside>
+
+        <section id="time-controls" class="time-controls glass-panel" aria-label="时间控制器">
+          <button id="play-toggle" class="play-toggle" type="button" aria-label="暂停时间" aria-pressed="true">
+            <span class="pause-symbol" aria-hidden="true"></span>
+          </button>
+          <div class="speed-control">
+            <div class="speed-readout">
+              <span>模拟速度</span>
+              <strong id="speed-label">1×</strong>
+            </div>
+            <div id="speed-options" class="speed-options" role="group" aria-label="选择时间倍率">
+              <button type="button" data-speed="0.5">0.5×</button>
+              <button type="button" data-speed="1" class="is-active">1×</button>
+              <button type="button" data-speed="5">5×</button>
+              <button type="button" data-speed="20">20×</button>
+              <button type="button" data-speed="100">100×</button>
+            </div>
+          </div>
+          <button id="reset-time" class="reset-button" type="button">重置时间</button>
+          <details class="date-control" open>
+            <summary>
+              <span>星历日期</span>
+              <strong id="date-label">当前日期</strong>
+            </summary>
+            <div class="date-control-row">
+              <input
+                type="date"
+                id="ephemeris-date"
+                min="1800-01-01"
+                max="2050-12-31"
+                aria-label="选择星历日期"
+              />
+              <div id="date-mode-options" class="date-mode-options" role="group" aria-label="日期运行模式">
+                <button type="button" data-date-mode="ephemeris" class="is-active">真实日期</button>
+                <button type="button" data-date-mode="simulation">模拟运行</button>
+              </div>
+              <button id="today-button" class="today-button" type="button">今天</button>
+            </div>
+          </details>
+        </section>
+
+        <aside id="settings-panel" class="settings-panel glass-panel" aria-labelledby="settings-title" hidden>
+          <div class="settings-header">
+            <div>
+              <span>显示与性能</span>
+              <h2 id="settings-title">探索设置</h2>
+            </div>
+            <button id="close-settings" class="panel-close" type="button">关闭</button>
+          </div>
+
+          <div class="setting-group">
+            <span class="setting-label">场景图层</span>
+            <label class="switch-row">
+              <span>行星轨道</span>
+              <input id="toggle-orbits" type="checkbox" checked />
+              <i aria-hidden="true"></i>
+            </label>
+            <label class="switch-row">
+              <span>小行星带</span>
+              <input id="toggle-asteroids" type="checkbox" checked />
+              <i aria-hidden="true"></i>
+            </label>
+            <label class="switch-row">
+              <span>星球标签</span>
+              <input id="toggle-labels" type="checkbox" checked />
+              <i aria-hidden="true"></i>
+            </label>
+          </div>
+
+          <fieldset class="setting-group segmented-setting">
+            <legend>比例模式</legend>
+            <div id="scale-options" class="segmented-control">
+              <button type="button" data-scale="display" class="is-active">展示比例</button>
+              <button type="button" data-scale="real">真实比例</button>
+            </div>
+            <p>真实比例采用可浏览的近似缩放，强调距离与体积差异。</p>
+          </fieldset>
+
+          <fieldset class="setting-group segmented-setting">
+            <legend>画质</legend>
+            <div id="quality-options" class="segmented-control three-up">
+              <button type="button" data-quality="low">低</button>
+              <button type="button" data-quality="medium" class="is-active">中</button>
+              <button type="button" data-quality="high">高</button>
+            </div>
+          </fieldset>
+
+          <div class="setting-group depth-of-field-setting">
+            <label id="depth-of-field-row" class="switch-row" for="toggle-depth-of-field">
+              <span>聚焦景深</span>
+              <input id="toggle-depth-of-field" type="checkbox" checked />
+              <i aria-hidden="true"></i>
+            </label>
+            <p id="depth-of-field-hint">景深仅在电脑高画质聚焦时可用</p>
+          </div>
+
+          <button id="cruise-button" class="secondary-action" type="button" aria-pressed="false">
+            开始自动巡航
+          </button>
+        </aside>
+
+        <div id="hover-label" class="hover-label" role="status" hidden>
+          <span id="hover-name"></span>
+          <small id="hover-english"></small>
+        </div>
+
+        <div class="camera-hint" aria-hidden="true">
+          <span>拖动旋转</span>
+          <span>滚轮缩放</span>
+          <span>右键平移</span>
+        </div>
+      </div>
+
+      <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+      <section id="webgl-error" class="screen-layer error-screen" hidden>
+        <div class="error-card">
+          <span>无法启动 3D 场景</span>
+          <h2>浏览器未能创建 WebGL 环境</h2>
+          <p id="error-message">请更新浏览器，并确认硬件加速已开启。</p>
+          <button type="button" onclick="location.reload()">重新加载</button>
+        </div>
+      </section>
+    </main>
+
+    <noscript>此体验需要启用 JavaScript。</noscript>
+    <script type="module">
+      const showBootstrapError = (message, error) => {
+        const loading = document.getElementById('loading-screen');
+        const intro = document.getElementById('intro-screen');
+        const app = document.getElementById('app-shell');
+        const panel = document.getElementById('webgl-error');
+        const errorMessage = document.getElementById('error-message');
+        if (loading) loading.hidden = true;
+        if (intro) intro.hidden = true;
+        if (app) app.hidden = true;
+        if (errorMessage) errorMessage.textContent = message;
+        if (panel) panel.hidden = false;
+        document.body.dataset.appState = 'error';
+        if (error) console.error('太阳系依赖加载失败', error);
+      };
+
+      if (location.protocol === 'file:') {
+        showBootstrapError('请先双击项目中的 start-web.command，再通过终端显示的网址打开。手机与电脑需连接同一 Wi-Fi。');
+      } else {
+        import('./main.js').catch((error) => {
+          showBootstrapError('Three.js 或动画依赖加载失败，请检查网络连接后重新加载。', error);
+        });
+      }
+    </script>
+  </body>
+</html>
