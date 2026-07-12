@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "publishedFileCount": 131,
-  "publishedBytes": 71182275,
+  "publishedBytes": 54573674,
   "payloadFileCount": 130,
-  "payloadBytes": 71150918,
+  "payloadBytes": 54542317,
   "lowPrecache": {
     "fileCount": 83,
     "bytes": 10149705,
@@ -98,7 +98,7 @@
   "mediumCore": {
     "definition": "all published files except on-demand high texture files and build-report.json",
     "fileCount": 110,
-    "bytes": 47372842,
+    "bytes": 30764241,
     "budgetBytes": 68157440,
     "withinBudget": true
   },
@@ -259,13 +259,13 @@
     },
     {
       "path": "assets/audio/deep-space-original.mp3",
-      "bytes": 31008436,
-      "sha256": "d1c38cbdf4f9fe3ed1e67d6b3f3cf5b236890047e79e7b89d43c5443e6b53500"
+      "bytes": 14399782,
+      "sha256": "07c5e550151079dcefe49501e22b16014acadb5f8aa418b750bf47cdd50a4cbe"
     },
     {
       "path": "assets/audio/README.md",
-      "bytes": 764,
-      "sha256": "ea2f87b2b06daf17a3aaf311b459becad60430e4ca38dcb2a6fb742b25aa59eb"
+      "bytes": 817,
+      "sha256": "7fe87565ca08432a80eca223460b3fa8b70a5373ebccc5292f20e33fca839d55"
     },
     {
       "path": "assets/icons/icon-192.png",
