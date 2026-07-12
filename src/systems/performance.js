@@ -146,7 +146,7 @@ export function createPerformanceManager(renderer, initialQuality = 'auto', call
   let autoAdjust = initialQuality === 'auto';
 
   function applyPixelRatio() {
-    const mobileCap = matchMedia('(pointer: coarse)').matches ? 1.25 : Infinity;
+    const mobileCap = matchMedia('(pointer: coarse)').matches && autoAdjust ? 1.25 : Infinity;
     const ratio = Math.min(
       window.devicePixelRatio || 1,
       QUALITY_PIXEL_RATIO[quality] || 1.5,

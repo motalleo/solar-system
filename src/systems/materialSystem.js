@@ -9,8 +9,6 @@ export function chooseTextureTier({ quality, coarsePointer = false, deviceMemory
   const requested = TIERS.has(quality) ? quality : 'medium';
   const memory = Number.isFinite(deviceMemory) ? deviceMemory : 8;
   if (memory <= 2) return 'low';
-  if (coarsePointer && memory <= 4) return requested === 'low' ? 'low' : 'medium';
-  if (coarsePointer && (requested === 'high' || requested === 'ultra')) return 'medium';
   return requested === 'ultra' ? 'high' : requested;
 }
 
