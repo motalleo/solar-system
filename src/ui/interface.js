@@ -51,6 +51,10 @@ export function createInterface(bodies, callbacks = {}) {
     settings: required('settings-panel'),
     settingsButton: required('settings-button'),
     closeSettings: required('close-settings'),
+    installApp: required('install-app-button'),
+    pwaStatus: required('pwa-status'),
+    pwaStatusMessage: required('pwa-status-message'),
+    updateApp: required('update-app-button'),
     overview: required('overview-button'),
     sound: required('sound-button'),
     fullscreen: required('fullscreen-button'),
@@ -266,6 +270,30 @@ export function createInterface(bodies, callbacks = {}) {
     elements.sound.setAttribute('aria-label', active ? '关闭环境音效' : '开启环境音效');
   }
 
+  function setPwaState({ installAvailable = false, offlineReady = false, updateAvailable = false } = {}) {
+    elements.installApp.hidden = !installAvailable;
+    elements.installApp.dataset.state = installAvailable ? 'installAvailable' : '';
+    elements.updateApp.hidden = !updateAvailable;
+
+    if (updateAvailable) {
+      elements.pwaStatus.hidden = false;
+      elements.pwaStatus.dataset.state = 'updateAvailable';
+      elements.pwaStatusMessage.textContent = '发现新版本，可在准备好后更新';
+      document.body.dataset.pwaState = 'updateAvailable';
+      return;
+    }
+    if (offlineReady) {
+      elements.pwaStatus.hidden = false;
+      elements.pwaStatus.dataset.state = 'offlineReady';
+      elements.pwaStatusMessage.textContent = '离线资源已准备';
+      document.body.dataset.pwaState = 'offlineReady';
+      return;
+    }
+    elements.pwaStatus.hidden = true;
+    elements.pwaStatus.dataset.state = installAvailable ? 'installAvailable' : '';
+    document.body.dataset.pwaState = installAvailable ? 'installAvailable' : '';
+  }
+
   function toast(message, duration = 2600) {
     window.clearTimeout(toastTimer);
     elements.toast.textContent = message;
@@ -311,6 +339,8 @@ export function createInterface(bodies, callbacks = {}) {
   createBodyNavigation();
 
   listen(elements.start, 'click', () => callbacks.onStart?.());
+  listen(elements.installApp, 'click', () => callbacks.onInstallApp?.());
+  listen(elements.updateApp, 'click', () => callbacks.onUpdateApp?.());
   listen(elements.closeInfo, 'click', () => {
     hideInfo();
     callbacks.onOverview?.();
@@ -329,8 +359,14 @@ export function createInterface(bodies, callbacks = {}) {
   listen(elements.closeSettings, 'click', () => toggleSettings(false));
   listen(elements.fullscreen, 'click', toggleFullscreen);
   listen(elements.sound, 'click', async () => {
-    const active = await callbacks.onToggleSound?.();
-    setSoundEnabled(Boolean(active));
+    if (elements.sound.disabled) return;
+    elements.sound.disabled = true;
+    try {
+      const active = await callbacks.onToggleSound?.();
+      setSoundEnabled(Boolean(active));
+    } finally {
+      elements.sound.disabled = false;
+    }
   });
   listen(elements.cruise, 'click', () => {
     const next = !cruising;
@@ -392,6 +428,7 @@ export function createInterface(bodies, callbacks = {}) {
     setCruising,
     setViewState,
     setSoundEnabled,
+    setPwaState,
     toast,
     toggleSettings,
     showError,

@@ -7,7 +7,11 @@ import { createSunSurfaceMaterial } from '../shaders/coronaShader.js';
 import { createCoronaSystem } from './coronaSystem.js';
 import { sampleHeliocentricOrbit } from './ephemerisSystem.js';
 import { getLabelOpacity } from './presentationState.js';
-import { chooseTextureTier, createMaterialSystem } from './materialSystem.js';
+import { createMaterialSystem } from './materialSystem.js';
+import {
+  chooseBulkTextureTier,
+  createTextureTierController,
+} from './textureTierController.js';
 
 const PACKAGED_TEXTURES = new Set([
   'sun.jpg',
@@ -381,7 +385,7 @@ export async function createSolarSystem(scene, bodyData, options = {}) {
   const deviceMemory = typeof navigator === 'undefined' ? 8 : navigator.deviceMemory;
   const coarsePointer = typeof window !== 'undefined'
     && window.matchMedia?.('(pointer: coarse)').matches;
-  let currentTextureTier = chooseTextureTier({ quality, coarsePointer, deviceMemory });
+  let currentTextureTier = chooseBulkTextureTier({ quality, coarsePointer, deviceMemory });
   let completedTextureJobs = 0;
   let completedMaterialJobs = 0;
   let totalTextureJobs = PLANET_IDS.reduce(
@@ -793,13 +797,15 @@ export async function createSolarSystem(scene, bodyData, options = {}) {
 
   totalTextureJobs += textureJobs.length;
   options.onTextureCount?.(totalTextureJobs);
-  const materialJobs = PLANET_IDS.map(async (id) => {
-    const bundle = await materialSystem.loadBody(id, currentTextureTier);
-    if (bundle === materialSystem.getMaterialBundle(id)) {
-      applyMaterialBundle(records.get(id), bundle);
-    }
+  const textureTierController = createTextureTierController({
+    materialSystem,
+    planetIds: PLANET_IDS,
+    quality,
+    coarsePointer,
+    deviceMemory,
+    applyBundle: (id, bundle) => applyMaterialBundle(records.get(id), bundle),
   });
-  await Promise.all([...textureJobs, ...materialJobs]);
+  await Promise.all([...textureJobs, textureTierController.loadInitial()]);
 
   const sunWorldPosition = new THREE.Vector3();
   const bodyWorldPosition = new THREE.Vector3();
@@ -840,8 +846,11 @@ export async function createSolarSystem(scene, bodyData, options = {}) {
         record.material.uniforms.uTime.value = simulationTime;
       }
     }
-    coronaSystem?.update(simulationTime, delta);
     updateSunDirection();
+  }
+
+  function updateCorona(simulationTime, delta) {
+    coronaSystem?.update(simulationTime, delta);
   }
 
   function updateOrbitGeometries(date) {
@@ -905,21 +914,12 @@ export async function createSolarSystem(scene, bodyData, options = {}) {
       if (record.clouds) record.clouds.geometry = sphereGeometry;
     }
     coronaSystem?.setQuality(nextQuality);
-    const nextTextureTier = chooseTextureTier({
-      quality: nextQuality,
-      coarsePointer,
-      deviceMemory,
-    });
-    if (nextTextureTier !== currentTextureTier) {
-      currentTextureTier = nextTextureTier;
-      for (const id of PLANET_IDS) {
-        void materialSystem.upgradeBody(id, nextTextureTier).then((bundle) => {
-          if (bundle === materialSystem.getMaterialBundle(id)) {
-            applyMaterialBundle(records.get(id), bundle);
-          }
-        });
-      }
-    }
+    void textureTierController.setQuality(nextQuality);
+    currentTextureTier = textureTierController.bulkTier;
+  }
+
+  function upgradeFocusedTexture(id) {
+    return textureTierController.focusPlanet(id);
   }
 
   function setOrbitsVisible(visible) {
@@ -1005,11 +1005,13 @@ export async function createSolarSystem(scene, bodyData, options = {}) {
     sunlight,
     coronaSystem,
     update,
+    updateCorona,
     updateSunDirection,
     setEphemerisSnapshot,
     setOrbitMode,
     setScaleMode,
     setQuality,
+    upgradeFocusedTexture,
     setOrbitsVisible,
     setLabelsVisible,
     setHovered,

@@ -37,8 +37,15 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
   let ambientGain = null;
   let enabled = false;
   let disposed = false;
+  let enablePromise = null;
+  let pendingCandidate = null;
+  let generation = 0;
+  let visibilitySuspended = false;
+  let visibilityIntentGeneration = 0;
+  let visibilityQueue = Promise.resolve(false);
   const focusPosition = { x: 0, y: 0, z: 0 };
   const activeEffects = new Set();
+  const closedContexts = new WeakSet();
 
   function relativeFocus() {
     const cameraPosition = camera?.position || { x: 0, y: 0, z: 0 };
@@ -62,17 +69,29 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
     }
   }
 
-  function releaseEffect(effect, stop = false) {
-    if (!effect || !activeEffects.has(effect)) return;
+  function releaseEffect(effect) {
+    if (!effect || effect.released) return;
+    effect.released = true;
     activeEffects.delete(effect);
-    if (stop) safeStop(effect.oscillator);
+    effect.oscillator.onended = null;
     safeDisconnect(effect.oscillator);
     safeDisconnect(effect.gain);
     safeDisconnect(effect.panner);
   }
 
+  function closeContext(audioContext) {
+    if (!audioContext || closedContexts.has(audioContext)) return;
+    closedContexts.add(audioContext);
+    if (audioContext.state === 'closed' || typeof audioContext.close !== 'function') return;
+    try {
+      Promise.resolve(audioContext.close()).catch(() => {});
+    } catch (error) {
+      // Closing Web Audio is best-effort during cancellation and page teardown.
+    }
+  }
+
   function clearGraph() {
-    activeEffects.forEach((effect) => releaseEffect(effect, true));
+    activeEffects.forEach((effect) => releaseEffect(effect));
     safeStop(ambientOscillator);
     safeDisconnect(ambientOscillator);
     safeDisconnect(ambientFilter);
@@ -83,63 +102,136 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
 
     const closingContext = context;
     context = null;
-    if (closingContext && closingContext.state !== 'closed' && typeof closingContext.close === 'function') {
-      try {
-        Promise.resolve(closingContext.close()).catch(() => {});
-      } catch (error) {
-        // Closing Web Audio is best-effort during page teardown.
+    closeContext(closingContext);
+  }
+
+  function createAmbientLayer(audioContext) {
+    const oscillator = audioContext.createOscillator();
+    const filter = audioContext.createBiquadFilter();
+    const gain = audioContext.createGain();
+
+    oscillator.type = 'sine';
+    setParam(oscillator.frequency, 42, audioContext.currentTime);
+    filter.type = 'lowpass';
+    setParam(filter.frequency, 180, audioContext.currentTime);
+    setParam(filter.Q, 0.72, audioContext.currentTime);
+    setParam(gain.gain, 0.018, audioContext.currentTime);
+
+    oscillator.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(audioContext.currentTime);
+    return { oscillator, filter, gain };
+  }
+
+  function trackEnable(operation) {
+    enablePromise = operation;
+    const clearPending = () => {
+      if (enablePromise === operation) enablePromise = null;
+    };
+    operation.then(clearPending, clearPending);
+    return operation;
+  }
+
+  function isCurrentContext(audioContext, activeGeneration) {
+    return !disposed
+      && generation === activeGeneration
+      && (pendingCandidate === audioContext || context === audioContext);
+  }
+
+  async function reconcileVisibilityIntent(audioContext, activeGeneration) {
+    const maxAttempts = 8;
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      if (!isCurrentContext(audioContext, activeGeneration) || audioContext.state === 'closed') {
+        return false;
       }
+      const intentGeneration = visibilityIntentGeneration;
+      const shouldSuspend = visibilitySuspended;
+      try {
+        if (shouldSuspend && audioContext.state === 'running') {
+          if (typeof audioContext.suspend !== 'function') return false;
+          await audioContext.suspend();
+        } else if (!shouldSuspend && audioContext.state !== 'running') {
+          if (typeof audioContext.resume !== 'function') return false;
+          await audioContext.resume();
+        }
+      } catch (error) {
+        return false;
+      }
+      if (!isCurrentContext(audioContext, activeGeneration)) return false;
+      const stateMatches = visibilitySuspended
+        ? audioContext.state !== 'running'
+        : audioContext.state === 'running';
+      if (intentGeneration === visibilityIntentGeneration && stateMatches) return true;
     }
+    return false;
   }
 
-  function createAmbientLayer() {
-    ambientOscillator = context.createOscillator();
-    ambientFilter = context.createBiquadFilter();
-    ambientGain = context.createGain();
-
-    ambientOscillator.type = 'sine';
-    setParam(ambientOscillator.frequency, 42, context.currentTime);
-    ambientFilter.type = 'lowpass';
-    setParam(ambientFilter.frequency, 180, context.currentTime);
-    setParam(ambientFilter.Q, 0.72, context.currentTime);
-    setParam(ambientGain.gain, 0.018, context.currentTime);
-
-    ambientOscillator.connect(ambientFilter);
-    ambientFilter.connect(ambientGain);
-    ambientGain.connect(context.destination);
-    ambientOscillator.start(context.currentTime);
-  }
-
-  async function enable() {
-    if (disposed) return false;
+  function enable() {
+    if (disposed) return Promise.resolve(false);
+    if (enablePromise) return enablePromise;
     if (enabled && context) {
-      if (context.state === 'suspended' && typeof context.resume === 'function') {
-        try {
-          await context.resume();
-        } catch (error) {
+      const activeContext = context;
+      const activeGeneration = generation;
+      return trackEnable(reconcileVisibilityIntent(activeContext, activeGeneration));
+    }
+
+    let candidate;
+    try {
+      candidate = audioContextFactory?.() || null;
+    } catch (error) {
+      return Promise.resolve(false);
+    }
+    if (!candidate) return Promise.resolve(false);
+
+    const candidateGeneration = ++generation;
+    pendingCandidate = candidate;
+    return trackEnable((async () => {
+      try {
+        if (candidate.state === 'suspended' && typeof candidate.resume === 'function') {
+          await candidate.resume();
+        }
+        if (disposed
+          || generation !== candidateGeneration
+          || pendingCandidate !== candidate) {
+          closeContext(candidate);
           return false;
         }
-      }
-      return true;
-    }
+        if (!await reconcileVisibilityIntent(candidate, candidateGeneration)) {
+          closeContext(candidate);
+          return false;
+        }
 
-    try {
-      context = audioContextFactory?.() || null;
-      if (!context) return false;
-      if (context.state === 'suspended' && typeof context.resume === 'function') await context.resume();
-      createAmbientLayer();
-      enabled = true;
-      return true;
-    } catch (error) {
-      enabled = false;
-      clearGraph();
-      return false;
-    }
+        const ambient = createAmbientLayer(candidate);
+        context = candidate;
+        ambientOscillator = ambient.oscillator;
+        ambientFilter = ambient.filter;
+        ambientGain = ambient.gain;
+        pendingCandidate = null;
+        enabled = true;
+        if (!await reconcileVisibilityIntent(candidate, candidateGeneration)) {
+          enabled = false;
+          clearGraph();
+          return false;
+        }
+        return true;
+      } catch (error) {
+        if (pendingCandidate === candidate) pendingCandidate = null;
+        closeContext(candidate);
+        return false;
+      }
+    })());
   }
 
   function disable() {
-    if (!enabled && !context) return false;
+    generation += 1;
     enabled = false;
+    visibilitySuspended = false;
+    visibilityIntentGeneration += 1;
+    enablePromise = null;
+    const candidate = pendingCandidate;
+    pendingCandidate = null;
+    closeContext(candidate);
     clearGraph();
     return false;
   }
@@ -191,7 +283,7 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
       gain.connect(panner);
       panner.connect(context.destination);
 
-      const effect = { oscillator, gain, panner };
+      const effect = { oscillator, gain, panner, released: false };
       activeEffects.add(effect);
       oscillator.onended = () => releaseEffect(effect);
       positionPanner(panner);
@@ -221,6 +313,40 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
     });
   }
 
+  function runVisibilityOperation(operation) {
+    const queued = visibilityQueue.then(operation, operation);
+    visibilityQueue = queued.catch(() => false);
+    return queued;
+  }
+
+  function suspendForVisibility() {
+    visibilitySuspended = true;
+    visibilityIntentGeneration += 1;
+    return runVisibilityOperation(async () => {
+      if (disposed
+        || !enabled
+        || !context
+        || context.state === 'closed') return false;
+      const activeContext = context;
+      const activeGeneration = generation;
+      return reconcileVisibilityIntent(activeContext, activeGeneration);
+    });
+  }
+
+  function resumeForVisibility() {
+    visibilitySuspended = false;
+    visibilityIntentGeneration += 1;
+    return runVisibilityOperation(async () => {
+      if (disposed
+        || !enabled
+        || !context
+        || context.state === 'closed') return false;
+      const activeContext = context;
+      const activeGeneration = generation;
+      return reconcileVisibilityIntent(activeContext, activeGeneration);
+    });
+  }
+
   function update() {
     if (!enabled || !context) return false;
     activeEffects.forEach(({ panner }) => positionPanner(panner));
@@ -239,6 +365,8 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
     setFocusPosition,
     playSelect,
     playFlyby,
+    suspendForVisibility,
+    resumeForVisibility,
     update,
     dispose,
   };
