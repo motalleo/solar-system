@@ -1,4 +1,4 @@
-const CORE_CACHE = 'solar-core-v2';
+const CORE_CACHE = 'solar-core-v3';
 const TEXTURE_CACHE = 'solar-textures-v1';
 const AUDIO_CACHE = 'solar-audio-v1';
 const CACHE_PREFIX = 'solar-';
