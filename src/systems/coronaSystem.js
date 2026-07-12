@@ -1,6 +1,7 @@
 import { createCoronaMaterial } from '../shaders/coronaShader.js';
 
 export const CORONA_QUALITY_PRESETS = Object.freeze({
+  ultra: Object.freeze({ octaves: 4, flareCount: 12, shellSegments: [96, 60], flareSegments: 14, intensity: 1.14 }),
   high: Object.freeze({ octaves: 4, flareCount: 8, shellSegments: [72, 44], flareSegments: 12, intensity: 1.08 }),
   medium: Object.freeze({ octaves: 3, flareCount: 4, shellSegments: [52, 32], flareSegments: 9, intensity: 0.94 }),
   low: Object.freeze({ octaves: 1, flareCount: 0, shellSegments: [32, 20], flareSegments: 0, intensity: 0.62 }),

@@ -2,7 +2,10 @@ const QUALITY_PIXEL_RATIO = {
   low: 1,
   medium: 1.5,
   high: 2,
+  ultra: 2,
 };
+
+const QUALITY_DOWNGRADE = Object.freeze({ ultra: 'high', high: 'medium', medium: 'low' });
 
 export function isPageFocused(documentLike) {
   return Boolean(
@@ -94,7 +97,7 @@ export function shouldEnableDepthOfField({
 } = {}) {
   return Boolean(
     userEnabled
-    && quality === 'high'
+    && (quality === 'high' || quality === 'ultra')
     && !coarsePointer
     && focusedId
     && !reducedMotion
@@ -124,11 +127,13 @@ export function applyDepthOfFieldRuntime({
   return true;
 }
 
-export function inferQuality() {
-  const memory = navigator.deviceMemory || 4;
-  const cores = navigator.hardwareConcurrency || 4;
-  const coarse = matchMedia('(pointer: coarse)').matches;
+export function inferQuality(capabilities = {}) {
+  const memory = capabilities.deviceMemory ?? globalThis.navigator?.deviceMemory ?? 4;
+  const cores = capabilities.hardwareConcurrency ?? globalThis.navigator?.hardwareConcurrency ?? 4;
+  const coarse = capabilities.coarsePointer ?? globalThis.matchMedia?.('(pointer: coarse)')?.matches ?? false;
+  const pixelRatio = capabilities.devicePixelRatio ?? globalThis.devicePixelRatio ?? 1;
   if (coarse || memory <= 3 || cores <= 4) return 'low';
+  if (memory >= 16 && cores >= 8 && pixelRatio <= 2.25) return 'ultra';
   if (memory >= 8 && cores >= 8) return 'high';
   return 'medium';
 }
@@ -152,9 +157,14 @@ export function createPerformanceManager(renderer, initialQuality = 'auto', call
   }
 
   function setQuality(nextQuality, manual = true) {
+    const selectingAuto = nextQuality === 'auto';
+    if (selectingAuto) {
+      autoAdjust = true;
+      nextQuality = inferQuality();
+    }
     if (!QUALITY_PIXEL_RATIO[nextQuality]) return quality;
     quality = nextQuality;
-    if (manual) autoAdjust = false;
+    if (manual && !selectingAuto) autoAdjust = false;
     const pixelRatio = applyPixelRatio();
     callbacks.onQualityChange?.(quality, pixelRatio);
     return quality;
@@ -175,7 +185,7 @@ export function createPerformanceManager(renderer, initialQuality = 'auto', call
     const average = frameDurations.reduce((sum, duration) => sum + duration, 0) / frameDurations.length;
     if (average > 24 && quality !== 'low') {
       lastAdjustment = now;
-      setQuality(quality === 'high' ? 'medium' : 'low', false);
+      setQuality(QUALITY_DOWNGRADE[quality] || 'low', false);
       callbacks.onAutoDowngrade?.(quality);
       frameDurations = [];
     }
@@ -206,6 +216,9 @@ export function createPerformanceManager(renderer, initialQuality = 'auto', call
     },
     get pixelRatio() {
       return renderer.getPixelRatio();
+    },
+    get mode() {
+      return autoAdjust ? 'auto' : 'manual';
     },
   };
 }

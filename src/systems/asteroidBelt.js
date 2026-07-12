@@ -4,6 +4,7 @@ const QUALITY_COUNTS = {
   low: 650,
   medium: 1400,
   high: 2600,
+  ultra: 3600,
 };
 
 const BELT_RANGES = {
@@ -47,7 +48,7 @@ export function createAsteroidBelt(scene, quality = 'medium') {
       material.dispose();
     }
 
-    geometry = new THREE.IcosahedronGeometry(0.24, currentQuality === 'high' ? 1 : 0);
+    geometry = new THREE.IcosahedronGeometry(0.24, currentQuality === 'low' ? 0 : 1);
     material = new THREE.MeshStandardMaterial({
       color: 0x817b72,
       roughness: 0.96,

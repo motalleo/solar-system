@@ -62,6 +62,13 @@ export function createInterface(bodies, callbacks = {}) {
     orbits: required('toggle-orbits'),
     asteroids: required('toggle-asteroids'),
     labels: required('toggle-labels'),
+    diagnosticsToggle: required('toggle-diagnostics'),
+    diagnostics: required('performance-hud'),
+    diagnosticsFps: required('diagnostics-fps'),
+    diagnosticsP1Fps: required('diagnostics-p1-fps'),
+    diagnosticsDrawCalls: required('diagnostics-draw-calls'),
+    diagnosticsTriangles: required('diagnostics-triangles'),
+    diagnosticsMemory: required('diagnostics-memory'),
     scaleOptions: required('scale-options'),
     qualityOptions: required('quality-options'),
     depthOfField: required('toggle-depth-of-field'),
@@ -232,9 +239,10 @@ export function createInterface(bodies, callbacks = {}) {
     });
   }
 
-  function setQuality(quality) {
+  function setQuality(quality, mode = 'manual') {
     elements.qualityOptions.querySelectorAll('[data-quality]').forEach((button) => {
-      button.classList.toggle('is-active', button.dataset.quality === quality);
+      const activeQuality = mode === 'auto' ? 'auto' : quality;
+      button.classList.toggle('is-active', button.dataset.quality === activeQuality);
     });
   }
 
@@ -245,6 +253,21 @@ export function createInterface(bodies, callbacks = {}) {
     elements.depthOfFieldHint.textContent = available
       ? '仅在电脑高画质聚焦时生效'
       : '景深仅在电脑高画质聚焦时可用';
+  }
+
+  function setDiagnosticsVisible(visible) {
+    const active = Boolean(visible);
+    elements.diagnostics.hidden = !active;
+    elements.diagnosticsToggle.checked = active;
+  }
+
+  function setDiagnostics(snapshot = {}) {
+    const fixed = (value, digits = 0) => Number.isFinite(value) ? value.toFixed(digits) : '—';
+    elements.diagnosticsFps.textContent = fixed(snapshot.fps, 1);
+    elements.diagnosticsP1Fps.textContent = fixed(snapshot.p1Fps, 1);
+    elements.diagnosticsDrawCalls.textContent = fixed(snapshot.render?.calls);
+    elements.diagnosticsTriangles.textContent = fixed(snapshot.render?.triangles);
+    elements.diagnosticsMemory.textContent = `${fixed(snapshot.memory?.textures)} / ${fixed(snapshot.memory?.geometries)}`;
   }
 
   function setCruising(active) {
@@ -376,6 +399,7 @@ export function createInterface(bodies, callbacks = {}) {
   listen(elements.orbits, 'change', () => callbacks.onOrbits?.(elements.orbits.checked));
   listen(elements.asteroids, 'change', () => callbacks.onAsteroids?.(elements.asteroids.checked));
   listen(elements.labels, 'change', () => callbacks.onLabels?.(elements.labels.checked));
+  listen(elements.diagnosticsToggle, 'change', () => callbacks.onDiagnostics?.(elements.diagnosticsToggle.checked));
   listen(elements.depthOfField, 'change', () => callbacks.onDepthOfField?.(elements.depthOfField.checked));
   listen(elements.speedOptions, 'click', (event) => {
     const button = event.target.closest('[data-speed]');
@@ -425,6 +449,8 @@ export function createInterface(bodies, callbacks = {}) {
     setScaleMode,
     setQuality,
     setDepthOfField,
+    setDiagnosticsVisible,
+    setDiagnostics,
     setCruising,
     setViewState,
     setSoundEnabled,

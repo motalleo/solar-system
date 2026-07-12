@@ -33,6 +33,7 @@ const QUALITY_SEGMENTS = {
   low: [38, 24],
   medium: [64, 40],
   high: [96, 64],
+  ultra: [128, 84],
 };
 
 function mulberry32(seed) {
@@ -211,6 +212,7 @@ function createEarthMaterial(dayTexture, nightTexture) {
       uSpecular: { value: dayTexture },
       uRoughness: { value: dayTexture },
       uBump: { value: dayTexture },
+      uClouds: { value: dayTexture },
       uBumpTexel: { value: new THREE.Vector2(1 / 768, 1 / 384) },
       uHighlight: { value: 0 },
       uDim: { value: 1 },
@@ -237,6 +239,7 @@ function createEarthMaterial(dayTexture, nightTexture) {
       uniform sampler2D uSpecular;
       uniform sampler2D uRoughness;
       uniform sampler2D uBump;
+      uniform sampler2D uClouds;
       uniform vec2 uBumpTexel;
       uniform float uHighlight;
       uniform float uDim;
@@ -261,7 +264,9 @@ function createEarthMaterial(dayTexture, nightTexture) {
         vec3 toCamera = normalize(cameraPosition - vWorldPosition);
         float light = dot(normal, toSun);
         float dayMix = smoothstep(-0.18, 0.3, light);
-        vec3 day = texture2D(uDay, vUv).rgb * (0.14 + max(light, 0.0) * 1.18);
+        float cloudCover = texture2D(uClouds, vUv).r;
+        float cloudShadow = mix(1.0, 0.68, smoothstep(0.18, 0.82, cloudCover) * dayMix);
+        vec3 day = texture2D(uDay, vUv).rgb * (0.14 + max(light, 0.0) * 1.18) * cloudShadow;
         vec3 night = texture2D(uNight, vUv).rgb * (1.0 - dayMix) * 1.65;
         float oceanMask = texture2D(uSpecular, vUv).r;
         float surfaceRoughness = texture2D(uRoughness, vUv).r;
@@ -301,7 +306,9 @@ function createRingMaterial(texture) {
       void main() {
         vec4 ring = texture2D(uMap, vec2(vRadius, 0.5));
         float edge = smoothstep(0.0, 0.035, vRadius) * smoothstep(1.0, 0.965, vRadius);
-        float alpha = ring.a * edge * uOpacity * uDim;
+        float cassiniGap = 1.0 - smoothstep(0.54, 0.565, vRadius) * (1.0 - smoothstep(0.59, 0.62, vRadius));
+        float ringBands = 0.82 + 0.18 * sin(vRadius * 190.0);
+        float alpha = ring.a * edge * cassiniGap * ringBands * uOpacity * uDim;
         if (alpha < 0.015) discard;
         gl_FragColor = vec4(ring.rgb * (0.68 + ring.a * 0.48), alpha);
       }
@@ -632,6 +639,7 @@ export async function createSolarSystem(scene, bodyData, options = {}) {
     if (data.id === 'earth') {
       const cloudFallback = registerTexture(createCloudTexture(quality === 'high' ? 1024 : 768));
       record.fallbackTextures.push(cloudFallback);
+      record.material.uniforms.uClouds.value = cloudFallback;
       const cloudMaterial = registerMaterial(new THREE.MeshStandardMaterial({
         map: cloudFallback,
         alphaMap: cloudFallback,
@@ -772,6 +780,7 @@ export async function createSolarSystem(scene, bodyData, options = {}) {
       record.material.uniforms.uSpecular.value = bundle.textures.specular;
       record.material.uniforms.uRoughness.value = bundle.textures.roughness;
       record.material.uniforms.uBump.value = bundle.textures.bump;
+      record.material.uniforms.uClouds.value = bundle.textures.clouds;
       const [bumpWidth, bumpHeight] = TEXTURE_MANIFEST.earth[bundle.tier].bump.runtimeResolution
         .split('x')
         .map(Number);

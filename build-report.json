@@ -1,0 +1,906 @@
+{
+  "schemaVersion": 1,
+  "publishedFileCount": 131,
+  "publishedBytes": 71182275,
+  "payloadFileCount": 130,
+  "payloadBytes": 71150918,
+  "lowPrecache": {
+    "fileCount": 83,
+    "bytes": 10149705,
+    "budgetBytes": 26214400,
+    "withinBudget": true,
+    "files": [
+      "assets/icons/icon-192.png",
+      "assets/icons/icon-512.png",
+      "assets/icons/icon-maskable-512.png",
+      "assets/textures/earth_clouds.jpg",
+      "assets/textures/earth_day.jpg",
+      "assets/textures/earth_night.jpg",
+      "assets/textures/jupiter.jpg",
+      "assets/textures/low/earth_albedo.jpg",
+      "assets/textures/low/earth_bump.jpg",
+      "assets/textures/low/earth_clouds.jpg",
+      "assets/textures/low/earth_night.jpg",
+      "assets/textures/low/earth_normal.jpg",
+      "assets/textures/low/earth_roughness.jpg",
+      "assets/textures/low/earth_specular.jpg",
+      "assets/textures/low/jupiter_albedo.jpg",
+      "assets/textures/low/mars_albedo.jpg",
+      "assets/textures/low/mars_bump.jpg",
+      "assets/textures/low/mars_roughness.jpg",
+      "assets/textures/low/mercury_albedo.jpg",
+      "assets/textures/low/mercury_bump.jpg",
+      "assets/textures/low/mercury_roughness.jpg",
+      "assets/textures/low/neptune_albedo.jpg",
+      "assets/textures/low/saturn_albedo.jpg",
+      "assets/textures/low/uranus_albedo.jpg",
+      "assets/textures/low/venus_albedo.jpg",
+      "assets/textures/low/venus_bump.jpg",
+      "assets/textures/low/venus_roughness.jpg",
+      "assets/textures/mars.jpg",
+      "assets/textures/mercury.jpg",
+      "assets/textures/moon.jpg",
+      "assets/textures/saturn.jpg",
+      "assets/textures/saturn_ring.png",
+      "assets/textures/sun.jpg",
+      "assets/textures/uranus.jpg",
+      "assets/textures/venus.jpg",
+      "assets/textures/venus_atmosphere.jpg",
+      "index.html",
+      "main.js",
+      "manifest.webmanifest",
+      "src/core/postprocessing.js",
+      "src/core/postprocessingRuntime.js",
+      "src/core/scene.js",
+      "src/data/celestialBodies.js",
+      "src/data/orbitalElements.js",
+      "src/data/satellites.js",
+      "src/data/textureManifest.js",
+      "src/pwa/pwaLifecycle.js",
+      "src/runtime/runtimeLifecycle.js",
+      "src/shaders/atmosphereShader.js",
+      "src/shaders/coronaShader.js",
+      "src/systems/asteroidBelt.js",
+      "src/systems/cameraDirector.js",
+      "src/systems/coronaSystem.js",
+      "src/systems/diagnostics.js",
+      "src/systems/ephemerisSystem.js",
+      "src/systems/interaction.js",
+      "src/systems/materialSystem.js",
+      "src/systems/performance.js",
+      "src/systems/presentationState.js",
+      "src/systems/satelliteSystem.js",
+      "src/systems/solarSystem.js",
+      "src/systems/spatialAudio.js",
+      "src/systems/starfield.js",
+      "src/systems/textureTierController.js",
+      "src/systems/timeSystem.js",
+      "src/ui/interface.js",
+      "style.css",
+      "vendor/gsap/gsap.min.js",
+      "vendor/three/addons/controls/OrbitControls.js",
+      "vendor/three/addons/postprocessing/BokehPass.js",
+      "vendor/three/addons/postprocessing/EffectComposer.js",
+      "vendor/three/addons/postprocessing/MaskPass.js",
+      "vendor/three/addons/postprocessing/OutputPass.js",
+      "vendor/three/addons/postprocessing/Pass.js",
+      "vendor/three/addons/postprocessing/RenderPass.js",
+      "vendor/three/addons/postprocessing/ShaderPass.js",
+      "vendor/three/addons/postprocessing/UnrealBloomPass.js",
+      "vendor/three/addons/shaders/BokehShader.js",
+      "vendor/three/addons/shaders/CopyShader.js",
+      "vendor/three/addons/shaders/LuminosityHighPassShader.js",
+      "vendor/three/addons/shaders/OutputShader.js",
+      "vendor/three/three.core.js",
+      "vendor/three/three.module.js"
+    ]
+  },
+  "mediumCore": {
+    "definition": "all published files except on-demand high texture files and build-report.json",
+    "fileCount": 110,
+    "bytes": 47372842,
+    "budgetBytes": 68157440,
+    "withinBudget": true
+  },
+  "highTextures": {
+    "precached": false,
+    "requiredPlanetAlbedoCount": 8,
+    "requiredPlanetAlbedos": [
+      {
+        "path": "assets/textures/high/earth_albedo.jpg",
+        "bytes": 853357,
+        "sha256": "da25efc7354159c8f95630024f6320d0a5195d0ef39ba1517cce2347f5f5068c"
+      },
+      {
+        "path": "assets/textures/high/jupiter_albedo.jpg",
+        "bytes": 922183,
+        "sha256": "4af953f5fcc87c2088ebbb4c847c7d0a8fc930af2e217d1e63fd7aecdcf1739a"
+      },
+      {
+        "path": "assets/textures/high/mars_albedo.jpg",
+        "bytes": 1454554,
+        "sha256": "bec0faf70985b147b045bbcee9bdad830e12dea1206ae43dc272e2ff4651e8e0"
+      },
+      {
+        "path": "assets/textures/high/mercury_albedo.jpg",
+        "bytes": 2504438,
+        "sha256": "3e30563d3731e02869fb84b33e878ac9417971bd20d1e7f0a1e9dec756dd4b63"
+      },
+      {
+        "path": "assets/textures/high/neptune_albedo.jpg",
+        "bytes": 74796,
+        "sha256": "10d817b1f468941efdd6e12e50745ae69a33e359809df6ea18b0143d2a1381ba"
+      },
+      {
+        "path": "assets/textures/high/saturn_albedo.jpg",
+        "bytes": 385504,
+        "sha256": "6ce7f95ab84e60dc92ee29cb4dc90632bd7cf73218e352be4ea612ce00923fa1"
+      },
+      {
+        "path": "assets/textures/high/uranus_albedo.jpg",
+        "bytes": 33382,
+        "sha256": "80e66f4a66f3242b83715553685e61d09782c357c1eda27fbc5bee0c802f77d3"
+      },
+      {
+        "path": "assets/textures/high/venus_albedo.jpg",
+        "bytes": 2004344,
+        "sha256": "5abda305359d4183ad8c506327b50f0033f1af06146fb69864474aaffd6afcce"
+      }
+    ],
+    "bytes": 23778076,
+    "files": [
+      {
+        "path": "assets/textures/high/earth_albedo.jpg",
+        "bytes": 853357,
+        "sha256": "da25efc7354159c8f95630024f6320d0a5195d0ef39ba1517cce2347f5f5068c"
+      },
+      {
+        "path": "assets/textures/high/earth_bump.jpg",
+        "bytes": 820193,
+        "sha256": "fb54409557f3d8cc3467d0619537d979f05f00cb246bb7c6e03e8cc7e693d42f"
+      },
+      {
+        "path": "assets/textures/high/earth_clouds.jpg",
+        "bytes": 2833576,
+        "sha256": "1ae9c8b1a07a94273d8ff5c2f0021b70bf28e782dd2187d0922eacdc6df1572d"
+      },
+      {
+        "path": "assets/textures/high/earth_night.jpg",
+        "bytes": 546814,
+        "sha256": "88e7a92dde50be86e984e0d0f683b84dbd7b1defabb02c87674ecfcfccb44308"
+      },
+      {
+        "path": "assets/textures/high/earth_normal.jpg",
+        "bytes": 378786,
+        "sha256": "67fd2755d2d5b9ed42e1298f3e1b51b71e2b774b0214d0b72f4e610834e33cb6"
+      },
+      {
+        "path": "assets/textures/high/earth_roughness.jpg",
+        "bytes": 536400,
+        "sha256": "fc1fcc81432677cba95713922c2f60a8ed37943ddcdb2ce175752378d9075790"
+      },
+      {
+        "path": "assets/textures/high/earth_specular.jpg",
+        "bytes": 536311,
+        "sha256": "4a5b3bf8aad7edadcdeb85dbc2047d57508d9f52cd25239dd02710c50d61f740"
+      },
+      {
+        "path": "assets/textures/high/jupiter_albedo.jpg",
+        "bytes": 922183,
+        "sha256": "4af953f5fcc87c2088ebbb4c847c7d0a8fc930af2e217d1e63fd7aecdcf1739a"
+      },
+      {
+        "path": "assets/textures/high/mars_albedo.jpg",
+        "bytes": 1454554,
+        "sha256": "bec0faf70985b147b045bbcee9bdad830e12dea1206ae43dc272e2ff4651e8e0"
+      },
+      {
+        "path": "assets/textures/high/mars_bump.jpg",
+        "bytes": 1393300,
+        "sha256": "e341a8e641cdcfc8cfaeefa655d5349d8d23d638b31b9d64133910bfbc2156e0"
+      },
+      {
+        "path": "assets/textures/high/mars_roughness.jpg",
+        "bytes": 513334,
+        "sha256": "6eb3cb6a706bafede5720446afe03a45642c3903afbce681e3dc3401452bc9f8"
+      },
+      {
+        "path": "assets/textures/high/mercury_albedo.jpg",
+        "bytes": 2504438,
+        "sha256": "3e30563d3731e02869fb84b33e878ac9417971bd20d1e7f0a1e9dec756dd4b63"
+      },
+      {
+        "path": "assets/textures/high/mercury_bump.jpg",
+        "bytes": 3149231,
+        "sha256": "c72159646d2e31ab01928fed3c436562a35505df3bd3921cd5375d19a85e8ee8"
+      },
+      {
+        "path": "assets/textures/high/mercury_roughness.jpg",
+        "bytes": 1635316,
+        "sha256": "3d00f4fc04f53a99c83f27cd5d8d465828460b0f9f6eb4f8a10d8a59360ef43d"
+      },
+      {
+        "path": "assets/textures/high/neptune_albedo.jpg",
+        "bytes": 74796,
+        "sha256": "10d817b1f468941efdd6e12e50745ae69a33e359809df6ea18b0143d2a1381ba"
+      },
+      {
+        "path": "assets/textures/high/saturn_albedo.jpg",
+        "bytes": 385504,
+        "sha256": "6ce7f95ab84e60dc92ee29cb4dc90632bd7cf73218e352be4ea612ce00923fa1"
+      },
+      {
+        "path": "assets/textures/high/uranus_albedo.jpg",
+        "bytes": 33382,
+        "sha256": "80e66f4a66f3242b83715553685e61d09782c357c1eda27fbc5bee0c802f77d3"
+      },
+      {
+        "path": "assets/textures/high/venus_albedo.jpg",
+        "bytes": 2004344,
+        "sha256": "5abda305359d4183ad8c506327b50f0033f1af06146fb69864474aaffd6afcce"
+      },
+      {
+        "path": "assets/textures/high/venus_bump.jpg",
+        "bytes": 2206449,
+        "sha256": "c33175c49b7037c32ea5dc17678cce51e077550680af9ef99ae47296b1158a11"
+      },
+      {
+        "path": "assets/textures/high/venus_roughness.jpg",
+        "bytes": 995808,
+        "sha256": "41f0e6c3801ff7e70c05999009eb9ecb8ecd016a8c9c08be3832fe09d6c5c85c"
+      }
+    ]
+  },
+  "resources": [
+    {
+      "path": ".nojekyll",
+      "bytes": 74,
+      "sha256": "f91b9b2c1eda951ae9703e49b06c9710baac9b8a2f2b46ea26225ec9baea0370"
+    },
+    {
+      "path": "assets/audio/deep-space-original.mp3",
+      "bytes": 31008436,
+      "sha256": "d1c38cbdf4f9fe3ed1e67d6b3f3cf5b236890047e79e7b89d43c5443e6b53500"
+    },
+    {
+      "path": "assets/audio/README.md",
+      "bytes": 764,
+      "sha256": "ea2f87b2b06daf17a3aaf311b459becad60430e4ca38dcb2a6fb742b25aa59eb"
+    },
+    {
+      "path": "assets/icons/icon-192.png",
+      "bytes": 16185,
+      "sha256": "829af2dcb1f6b57233ebb338248234a9c53aa9b086cf8f05c6e83050c6b6264d"
+    },
+    {
+      "path": "assets/icons/icon-512.png",
+      "bytes": 59635,
+      "sha256": "3244638dd3ffa64d3e5ae6b4f4fcdfdfcbd056062923f182b2aedcc77ea5ddea"
+    },
+    {
+      "path": "assets/icons/icon-maskable-512.png",
+      "bytes": 55532,
+      "sha256": "53fb5790b979ce099f0c75023c733148f75f31f65571ab6de16c93baca279080"
+    },
+    {
+      "path": "assets/textures/ATTRIBUTION.md",
+      "bytes": 4355,
+      "sha256": "786583db902ab18f376201072d6029b54f9f9a7d2d272e661c791ee47b15b916"
+    },
+    {
+      "path": "assets/textures/earth_clouds.jpg",
+      "bytes": 965676,
+      "sha256": "fffd7f68d41b37274822150e54a6ef605af1d3ec35624d9f628c3b896bfa42ed"
+    },
+    {
+      "path": "assets/textures/earth_day.jpg",
+      "bytes": 463087,
+      "sha256": "767ee1dc6eb3802699bfccf6f264880f8acd0b80de3191cd24984fe279b07b7c"
+    },
+    {
+      "path": "assets/textures/earth_night.jpg",
+      "bytes": 255287,
+      "sha256": "c16fd1bc096ab91a5c5265c6ff9847c43f489f2e2ee790ccdbcbd03251cf3a5a"
+    },
+    {
+      "path": "assets/textures/high/earth_albedo.jpg",
+      "bytes": 853357,
+      "sha256": "da25efc7354159c8f95630024f6320d0a5195d0ef39ba1517cce2347f5f5068c"
+    },
+    {
+      "path": "assets/textures/high/earth_bump.jpg",
+      "bytes": 820193,
+      "sha256": "fb54409557f3d8cc3467d0619537d979f05f00cb246bb7c6e03e8cc7e693d42f"
+    },
+    {
+      "path": "assets/textures/high/earth_clouds.jpg",
+      "bytes": 2833576,
+      "sha256": "1ae9c8b1a07a94273d8ff5c2f0021b70bf28e782dd2187d0922eacdc6df1572d"
+    },
+    {
+      "path": "assets/textures/high/earth_night.jpg",
+      "bytes": 546814,
+      "sha256": "88e7a92dde50be86e984e0d0f683b84dbd7b1defabb02c87674ecfcfccb44308"
+    },
+    {
+      "path": "assets/textures/high/earth_normal.jpg",
+      "bytes": 378786,
+      "sha256": "67fd2755d2d5b9ed42e1298f3e1b51b71e2b774b0214d0b72f4e610834e33cb6"
+    },
+    {
+      "path": "assets/textures/high/earth_roughness.jpg",
+      "bytes": 536400,
+      "sha256": "fc1fcc81432677cba95713922c2f60a8ed37943ddcdb2ce175752378d9075790"
+    },
+    {
+      "path": "assets/textures/high/earth_specular.jpg",
+      "bytes": 536311,
+      "sha256": "4a5b3bf8aad7edadcdeb85dbc2047d57508d9f52cd25239dd02710c50d61f740"
+    },
+    {
+      "path": "assets/textures/high/jupiter_albedo.jpg",
+      "bytes": 922183,
+      "sha256": "4af953f5fcc87c2088ebbb4c847c7d0a8fc930af2e217d1e63fd7aecdcf1739a"
+    },
+    {
+      "path": "assets/textures/high/mars_albedo.jpg",
+      "bytes": 1454554,
+      "sha256": "bec0faf70985b147b045bbcee9bdad830e12dea1206ae43dc272e2ff4651e8e0"
+    },
+    {
+      "path": "assets/textures/high/mars_bump.jpg",
+      "bytes": 1393300,
+      "sha256": "e341a8e641cdcfc8cfaeefa655d5349d8d23d638b31b9d64133910bfbc2156e0"
+    },
+    {
+      "path": "assets/textures/high/mars_roughness.jpg",
+      "bytes": 513334,
+      "sha256": "6eb3cb6a706bafede5720446afe03a45642c3903afbce681e3dc3401452bc9f8"
+    },
+    {
+      "path": "assets/textures/high/mercury_albedo.jpg",
+      "bytes": 2504438,
+      "sha256": "3e30563d3731e02869fb84b33e878ac9417971bd20d1e7f0a1e9dec756dd4b63"
+    },
+    {
+      "path": "assets/textures/high/mercury_bump.jpg",
+      "bytes": 3149231,
+      "sha256": "c72159646d2e31ab01928fed3c436562a35505df3bd3921cd5375d19a85e8ee8"
+    },
+    {
+      "path": "assets/textures/high/mercury_roughness.jpg",
+      "bytes": 1635316,
+      "sha256": "3d00f4fc04f53a99c83f27cd5d8d465828460b0f9f6eb4f8a10d8a59360ef43d"
+    },
+    {
+      "path": "assets/textures/high/neptune_albedo.jpg",
+      "bytes": 74796,
+      "sha256": "10d817b1f468941efdd6e12e50745ae69a33e359809df6ea18b0143d2a1381ba"
+    },
+    {
+      "path": "assets/textures/high/saturn_albedo.jpg",
+      "bytes": 385504,
+      "sha256": "6ce7f95ab84e60dc92ee29cb4dc90632bd7cf73218e352be4ea612ce00923fa1"
+    },
+    {
+      "path": "assets/textures/high/uranus_albedo.jpg",
+      "bytes": 33382,
+      "sha256": "80e66f4a66f3242b83715553685e61d09782c357c1eda27fbc5bee0c802f77d3"
+    },
+    {
+      "path": "assets/textures/high/venus_albedo.jpg",
+      "bytes": 2004344,
+      "sha256": "5abda305359d4183ad8c506327b50f0033f1af06146fb69864474aaffd6afcce"
+    },
+    {
+      "path": "assets/textures/high/venus_bump.jpg",
+      "bytes": 2206449,
+      "sha256": "c33175c49b7037c32ea5dc17678cce51e077550680af9ef99ae47296b1158a11"
+    },
+    {
+      "path": "assets/textures/high/venus_roughness.jpg",
+      "bytes": 995808,
+      "sha256": "41f0e6c3801ff7e70c05999009eb9ecb8ecd016a8c9c08be3832fe09d6c5c85c"
+    },
+    {
+      "path": "assets/textures/jupiter.jpg",
+      "bytes": 498976,
+      "sha256": "b0f04d005350252636b0e3396fc592548cbd9e9126b269d32d5c6abd4b0e4f2b"
+    },
+    {
+      "path": "assets/textures/low/earth_albedo.jpg",
+      "bytes": 25019,
+      "sha256": "594ef7fe87e422315871c4b201aaa3331279c027d92d5a22dd2e53a32cc393b0"
+    },
+    {
+      "path": "assets/textures/low/earth_bump.jpg",
+      "bytes": 21545,
+      "sha256": "9067392d4d11b31a7eccd8753f70e55b8fb19b993c1677479bb1efe49527a96d"
+    },
+    {
+      "path": "assets/textures/low/earth_clouds.jpg",
+      "bytes": 52278,
+      "sha256": "08ceec9a6a7ce8d55c7dcb521c2bc4a2e7b142f361c2ffc7d7a2910b9b08e559"
+    },
+    {
+      "path": "assets/textures/low/earth_night.jpg",
+      "bytes": 11303,
+      "sha256": "c3164ddf62fb408cbab16c28ae5cab39160ad909d707532e940c1e7364e141f0"
+    },
+    {
+      "path": "assets/textures/low/earth_normal.jpg",
+      "bytes": 3515,
+      "sha256": "7fe322b1a5303a2f842a01119d0656949ece2f11ea6e02cbcb650b28ac016b72"
+    },
+    {
+      "path": "assets/textures/low/earth_roughness.jpg",
+      "bytes": 28707,
+      "sha256": "9c03883a38a9f60d50b12960e6711f665a1c048995c11942b308e61d5d6c12d8"
+    },
+    {
+      "path": "assets/textures/low/earth_specular.jpg",
+      "bytes": 28699,
+      "sha256": "210b03fc61c6c9ad610a156deb8c7e4e1ab027d068eb5d4f59dbef5943f39509"
+    },
+    {
+      "path": "assets/textures/low/jupiter_albedo.jpg",
+      "bytes": 25573,
+      "sha256": "80ef7bfc4b17e825e38f1ba1a0ca5bb60749d13f22e7ae213949e2c8d4265eaf"
+    },
+    {
+      "path": "assets/textures/low/mars_albedo.jpg",
+      "bytes": 30885,
+      "sha256": "d45cfe6c45b083e1bc8795229973cb767c6633eefc8c417415ce11e9fa6530e7"
+    },
+    {
+      "path": "assets/textures/low/mars_bump.jpg",
+      "bytes": 27764,
+      "sha256": "6720f148e1b73a2af4a9a462789fe88bc955c5c5943ee7a448b91723e9005881"
+    },
+    {
+      "path": "assets/textures/low/mars_roughness.jpg",
+      "bytes": 12031,
+      "sha256": "3df4cb952584585608dc0a49a2137dcb11b00832aebb1c1fc9d39fe2063af76c"
+    },
+    {
+      "path": "assets/textures/low/mercury_albedo.jpg",
+      "bytes": 32771,
+      "sha256": "0f47cdee86530d9541f66422890119a60015878aa79d8509ae3894700ea89538"
+    },
+    {
+      "path": "assets/textures/low/mercury_bump.jpg",
+      "bytes": 47458,
+      "sha256": "f7b84f6a503fb8022316fd9a35d2434303b7e9a67c9f489b07a98834a66331ce"
+    },
+    {
+      "path": "assets/textures/low/mercury_roughness.jpg",
+      "bytes": 24390,
+      "sha256": "8de9428081edf76be0da9671f81df439c56d6bc2fbff15411b5a47ed9606beb8"
+    },
+    {
+      "path": "assets/textures/low/neptune_albedo.jpg",
+      "bytes": 7681,
+      "sha256": "53e8193e1539d42c59858b94599cc51b61024aff3d804a6f98ed4ec922e26844"
+    },
+    {
+      "path": "assets/textures/low/saturn_albedo.jpg",
+      "bytes": 11791,
+      "sha256": "3d92601abd0dfaab0883f885724f52aa3d6646cd52197b19472295e06fb2c608"
+    },
+    {
+      "path": "assets/textures/low/uranus_albedo.jpg",
+      "bytes": 3847,
+      "sha256": "50920ea39e4a9de2364cee5d0c57b2fd86710d94f5f01327e53ef111addfbfc0"
+    },
+    {
+      "path": "assets/textures/low/venus_albedo.jpg",
+      "bytes": 37262,
+      "sha256": "4d7b4ed1b33b64ac113754dbd3dfa4b262b939b66159f189ffce03787c3d9120"
+    },
+    {
+      "path": "assets/textures/low/venus_bump.jpg",
+      "bytes": 40403,
+      "sha256": "1d87791eccadafa15b66b7a95fdd4c014d4bb715ee436e0001fd8c6f95b4acc4"
+    },
+    {
+      "path": "assets/textures/low/venus_roughness.jpg",
+      "bytes": 20512,
+      "sha256": "9a7abee9b381db173b2d743a42862bfa33ff56657ed01d6b28f30aa1bacf5cd5"
+    },
+    {
+      "path": "assets/textures/mars.jpg",
+      "bytes": 750547,
+      "sha256": "2d187f3e77a98eaa8cea5f4cc722f633c122ef170b9e94ace6b5fb6cbc3f8e01"
+    },
+    {
+      "path": "assets/textures/medium/earth_albedo.jpg",
+      "bytes": 254021,
+      "sha256": "a9c2d8047e13002cf58c5cad67b7410cbc1f984b3e0eda577abecf964d43c5ed"
+    },
+    {
+      "path": "assets/textures/medium/earth_bump.jpg",
+      "bytes": 233951,
+      "sha256": "0b86b2605fbd1f22b4cf4c6bea21b21f48d6a5068e10021fb707cac1257c05be"
+    },
+    {
+      "path": "assets/textures/medium/earth_clouds.jpg",
+      "bytes": 722630,
+      "sha256": "365693897ea8776b41e8d8e354c2ba77a6cb616f7a2e017a8e95dc3ef58a5721"
+    },
+    {
+      "path": "assets/textures/medium/earth_night.jpg",
+      "bytes": 150220,
+      "sha256": "ac04c596135b4053fb702f1d6d64f225bd722fce9177db547621ec93fa9c816d"
+    },
+    {
+      "path": "assets/textures/medium/earth_normal.jpg",
+      "bytes": 71272,
+      "sha256": "9ce7f5d1b5776beb2e42a58c0abce4a429d6f99431eef52e386f09d5b8f17c5c"
+    },
+    {
+      "path": "assets/textures/medium/earth_roughness.jpg",
+      "bytes": 209068,
+      "sha256": "9d1f5f75fedb1ea19d6c3bcef9ab53bf37c1187b4cebee2abe293ebf106624ac"
+    },
+    {
+      "path": "assets/textures/medium/earth_specular.jpg",
+      "bytes": 208944,
+      "sha256": "6d98b3cae1c407b453c5b1a69620472031dd919187f8d90851f299bf8732ae19"
+    },
+    {
+      "path": "assets/textures/medium/jupiter_albedo.jpg",
+      "bytes": 285069,
+      "sha256": "ead2e1854e4fccba8df18d2c48f69265333b93d0ba01b444cf652200099c9462"
+    },
+    {
+      "path": "assets/textures/medium/mars_albedo.jpg",
+      "bytes": 391562,
+      "sha256": "9c2456d2ec77a3e403b06869a9e51b088bbdccd70e2e95e5e6c7932fcb925a8b"
+    },
+    {
+      "path": "assets/textures/medium/mars_bump.jpg",
+      "bytes": 369934,
+      "sha256": "e1c9dd28fe9bf37aad47f7f1b1da21e9d1e80ac1f5dfe60f00466813518171bc"
+    },
+    {
+      "path": "assets/textures/medium/mars_roughness.jpg",
+      "bytes": 143954,
+      "sha256": "9ba5d555060629f1fb3b10e1ef06d88ebf16503ca64dea14fa1136fef6fee9a6"
+    },
+    {
+      "path": "assets/textures/medium/mercury_albedo.jpg",
+      "bytes": 561049,
+      "sha256": "3618546006c945eb8456e333b2adbe4acbe1d97b16f5c1f14870c9bd36e36550"
+    },
+    {
+      "path": "assets/textures/medium/mercury_bump.jpg",
+      "bytes": 754831,
+      "sha256": "4808f006e2cc622454a6988e00b4bfd57a049bbdfdf2fb149962430b6e29c416"
+    },
+    {
+      "path": "assets/textures/medium/mercury_roughness.jpg",
+      "bytes": 388391,
+      "sha256": "ac80e046b305416ce58642b75e3d51d83ddfbf8276160e95b346dd32f6d1dd43"
+    },
+    {
+      "path": "assets/textures/medium/neptune_albedo.jpg",
+      "bytes": 21997,
+      "sha256": "148234818cdc16f107b29bef9870d362a2f11b8b3a7d9bcd2ef5f592708a1337"
+    },
+    {
+      "path": "assets/textures/medium/saturn_albedo.jpg",
+      "bytes": 120605,
+      "sha256": "01af237ef0d914a58407f426b5e24e1523ba8f2350ed4f7944d66c69c03fb74d"
+    },
+    {
+      "path": "assets/textures/medium/uranus_albedo.jpg",
+      "bytes": 11157,
+      "sha256": "1036e70aedc548ff516d7354e6ed7f339501311f6a875070a08d6fd8ccc0c70a"
+    },
+    {
+      "path": "assets/textures/medium/venus_albedo.jpg",
+      "bytes": 494697,
+      "sha256": "e838911f46ef167263d619efecd1fd257cd95055ba1d38b0819bd1044d648412"
+    },
+    {
+      "path": "assets/textures/medium/venus_bump.jpg",
+      "bytes": 541868,
+      "sha256": "3be53efe8d28e7c32c93fcc156f729727b3cc75a01318e4dcd6e75c87110fcdb"
+    },
+    {
+      "path": "assets/textures/medium/venus_roughness.jpg",
+      "bytes": 251639,
+      "sha256": "84137ce8ad0d6235445affae2b7389652de45f02dff23219cb3dabb7759c3bda"
+    },
+    {
+      "path": "assets/textures/mercury.jpg",
+      "bytes": 872555,
+      "sha256": "5a5c80607f643496bac9a631e71957def35ed788895f18b678ac849c2b38e48a"
+    },
+    {
+      "path": "assets/textures/moon.jpg",
+      "bytes": 1053869,
+      "sha256": "2764ba6535ea0481a062846ee033cc7a909dae05b31a8fd13f3e98f3a7fd92bd"
+    },
+    {
+      "path": "assets/textures/saturn_ring.png",
+      "bytes": 12119,
+      "sha256": "4b0644b2f3ef259fd0bfaedd9dc52f9e7d9738f65f50363e8c4dd19f650d7334"
+    },
+    {
+      "path": "assets/textures/saturn.jpg",
+      "bytes": 199916,
+      "sha256": "54a900ca9bf7ab62e70f862852759abdf342e6d6436a95a2fe9ebdb6bcd3bbac"
+    },
+    {
+      "path": "assets/textures/sun.jpg",
+      "bytes": 822427,
+      "sha256": "ff0f076ba65e03b5ab518451bc96699325be38e3ccbdd5869ee1c00f3a0c8816"
+    },
+    {
+      "path": "assets/textures/uranus.jpg",
+      "bytes": 77751,
+      "sha256": "d15239d46f82d3ea13d2b260b5b29b2a382f42f2916dae0694d0387b1204a09d"
+    },
+    {
+      "path": "assets/textures/venus_atmosphere.jpg",
+      "bytes": 229696,
+      "sha256": "225012ad4911730605c4e189ca2a3bf674fce50cc48aab4102b936b47d6991ac"
+    },
+    {
+      "path": "assets/textures/venus.jpg",
+      "bytes": 885075,
+      "sha256": "dbe5db1c794a8ab4cbf7dd6bf193540c400fc833ce1e6cc399318aa68026278b"
+    },
+    {
+      "path": "index.html",
+      "bytes": 13731,
+      "sha256": "ad94e60c1bf0a5ac49d793b32963f36cea45c1ca01338a122dd1b264f89f0a8b"
+    },
+    {
+      "path": "main.js",
+      "bytes": 20734,
+      "sha256": "2ea51b085b305ee4fcf35bd94513c7b66bb9264267d69c67db1e5c0fad7245fa"
+    },
+    {
+      "path": "manifest.webmanifest",
+      "bytes": 756,
+      "sha256": "02b7d72866d8b3c86cddb2dab0c6c0738fb3891bc5283bdfdb8dea21725e4ce6"
+    },
+    {
+      "path": "README.md",
+      "bytes": 10458,
+      "sha256": "9d87be12729067728f4292463e89974c646b704431c2ed150a0bf930020ef5d4"
+    },
+    {
+      "path": "src/core/postprocessing.js",
+      "bytes": 1044,
+      "sha256": "82675f85891190c968778f2b5a5b5a5aeb807ad5bb9b869916bb32d11888f097"
+    },
+    {
+      "path": "src/core/postprocessingRuntime.js",
+      "bytes": 4594,
+      "sha256": "e595955382966df30dd61af218f1464b9dc32acd3c3a70d2758be066d439a2e5"
+    },
+    {
+      "path": "src/core/scene.js",
+      "bytes": 2792,
+      "sha256": "d84f2096466eddc0615f987dd54bb0daa3546b8903a26351c28abbfe2c49a6fb"
+    },
+    {
+      "path": "src/data/celestialBodies.js",
+      "bytes": 8349,
+      "sha256": "0dd5a7fb77c08ed68a272edf5d98d767c3d704100dc7082b9a4ea4ed47db2078"
+    },
+    {
+      "path": "src/data/orbitalElements.js",
+      "bytes": 2244,
+      "sha256": "9867e5d2f610884c3c8ab43598c97dac6d50b96b386aba64ff277d06575f29f2"
+    },
+    {
+      "path": "src/data/satellites.js",
+      "bytes": 9436,
+      "sha256": "f227e0fbd91eb5d006e4d1eff46513c726e6a2f4587ae71101c75a2ae8af15ed"
+    },
+    {
+      "path": "src/data/textureManifest.js",
+      "bytes": 5845,
+      "sha256": "4e56d95bdfb4385b73dc5a3a610686357ec54164be2d6670cba8591d2ef234fb"
+    },
+    {
+      "path": "src/pwa/pwaLifecycle.js",
+      "bytes": 7162,
+      "sha256": "85206521e06f7bc6d6ec863399ceef7b5c946225f6f263988830e1b0f646efce"
+    },
+    {
+      "path": "src/runtime/runtimeLifecycle.js",
+      "bytes": 2636,
+      "sha256": "6d4560540dc8c37cd160e09f6326f9339da811727bf1322455360f22e367f2ec"
+    },
+    {
+      "path": "src/shaders/atmosphereShader.js",
+      "bytes": 2981,
+      "sha256": "f92fd0d30e33083cfa39b76cc7f1a607f1b070ed5a24510d9ccd3ebbe4b0cc66"
+    },
+    {
+      "path": "src/shaders/coronaShader.js",
+      "bytes": 6336,
+      "sha256": "278481587f049dfd30c0406cdb9a87459644faa999b6d12d2d331e2a0fa6715e"
+    },
+    {
+      "path": "src/systems/asteroidBelt.js",
+      "bytes": 4696,
+      "sha256": "26e667a053eec32041b2b7a1c285cecece40232787635fa18aa516dc42a373db"
+    },
+    {
+      "path": "src/systems/cameraDirector.js",
+      "bytes": 10160,
+      "sha256": "e424f58e3a0c8b172acae3acb0fd35b0089f96f9c01ff16674c9719dc8710790"
+    },
+    {
+      "path": "src/systems/coronaSystem.js",
+      "bytes": 7813,
+      "sha256": "e1e748b829806b2e0312f666e2e8fac75fd286f63ca0997d0dc86aae415d361a"
+    },
+    {
+      "path": "src/systems/diagnostics.js",
+      "bytes": 4225,
+      "sha256": "7d5323f35bedd785a3935c39dcf5889d726f541b89d6f9caae0644c1c17b4ddd"
+    },
+    {
+      "path": "src/systems/ephemerisSystem.js",
+      "bytes": 7247,
+      "sha256": "dcf621a6e42645abe46184d6eabe9fea1605216b335d9cbbc8bcd42c6ce3405e"
+    },
+    {
+      "path": "src/systems/interaction.js",
+      "bytes": 3782,
+      "sha256": "2097801b667a0dd7450dd2a0583724c1e60adf63193960fa325557c09c6cc016"
+    },
+    {
+      "path": "src/systems/materialSystem.js",
+      "bytes": 6366,
+      "sha256": "692c218c2ee5014b955fc107e91c208e73319d4085eb87663491dbc6a7ebc72c"
+    },
+    {
+      "path": "src/systems/performance.js",
+      "bytes": 6183,
+      "sha256": "4a34ff507d66b27369f3fcfd2123e8c62a17e457b042a0b691eb1a76b94d4417"
+    },
+    {
+      "path": "src/systems/presentationState.js",
+      "bytes": 1568,
+      "sha256": "eaa3517d094956374f58ba7a6d71488be6f980b60f8f5eb5cf29a02d58909d98"
+    },
+    {
+      "path": "src/systems/satelliteSystem.js",
+      "bytes": 12220,
+      "sha256": "b0760650f877cb1200e895ae5b7b17968c8a34a17c472b15e08dbc5260a3e8fb"
+    },
+    {
+      "path": "src/systems/solarSystem.js",
+      "bytes": 36367,
+      "sha256": "84d84195bdcd9692c789783099568b71cb3ee7b77a1f8d2a99e665a92c10844f"
+    },
+    {
+      "path": "src/systems/spatialAudio.js",
+      "bytes": 15673,
+      "sha256": "c157fe246371de4f65b86ff60342e4957c632f0cea0947a071dc7cfee38ca653"
+    },
+    {
+      "path": "src/systems/starfield.js",
+      "bytes": 7998,
+      "sha256": "827af1dbc9a9fbebf238380819d66b642962989b3d969bef9620bf33321eddf9"
+    },
+    {
+      "path": "src/systems/textureTierController.js",
+      "bytes": 2839,
+      "sha256": "856e43d8a27231c20c4441374161408486430f19f6851296f8698576fa6a6e2c"
+    },
+    {
+      "path": "src/systems/timeSystem.js",
+      "bytes": 1125,
+      "sha256": "80af63d2c8a04a074272bcda5a5920bb6dfe64c798782333626bb64357b93922"
+    },
+    {
+      "path": "src/ui/interface.js",
+      "bytes": 17470,
+      "sha256": "42a66417c6a121c59f92a0976e018170800df31258272b4e1859077b343d07ea"
+    },
+    {
+      "path": "style.css",
+      "bytes": 27347,
+      "sha256": "97a339dfcdcdec1f2c6f6da8588614ef2bce86a1a1c2894086de96681a040384"
+    },
+    {
+      "path": "sw.js",
+      "bytes": 8271,
+      "sha256": "0ec8eba407f29889f1de6f138789b38aa15967ded4dfd2027df382d5e05bd77d"
+    },
+    {
+      "path": "vendor/ATTRIBUTION.md",
+      "bytes": 3920,
+      "sha256": "13407256417bc28b0605662aa8affb3956da34859ff0818c5a512e5ad2bc82fa"
+    },
+    {
+      "path": "vendor/gsap/gsap.min.js",
+      "bytes": 72435,
+      "sha256": "96c01b81f44a3290e2b4532f55e2c9534b2adc43273a19f3756b2cb41f0fd0b6"
+    },
+    {
+      "path": "vendor/three/addons/controls/OrbitControls.js",
+      "bytes": 38703,
+      "sha256": "b97879c748170baadeb3fb84cea1ffdf4674e283dc06042f34e2acb95a76042c"
+    },
+    {
+      "path": "vendor/three/addons/postprocessing/BokehPass.js",
+      "bytes": 5531,
+      "sha256": "5b9b0bc5cee6e24b2417da95f40eb2d178943c2ffbacbc4c2993a89d0597bfb3"
+    },
+    {
+      "path": "vendor/three/addons/postprocessing/EffectComposer.js",
+      "bytes": 8477,
+      "sha256": "4b8c855f28eed2570bed898adc0ab89c585a8a281ecb6d905c09d00697f9f50a"
+    },
+    {
+      "path": "vendor/three/addons/postprocessing/MaskPass.js",
+      "bytes": 4694,
+      "sha256": "7cd08eee9d5d6f5578beaddbdcbe9c384f6873810af27f22ab7db3ceeb127aa3"
+    },
+    {
+      "path": "vendor/three/addons/postprocessing/OutputPass.js",
+      "bytes": 4029,
+      "sha256": "f5b81c96e76b6b28b4b3ba8c41c4aeb982b1e03f3d82883242d951b2ab082fa2"
+    },
+    {
+      "path": "vendor/three/addons/postprocessing/Pass.js",
+      "bytes": 4218,
+      "sha256": "444b409c235ead986893c472e720da1b779a56985c7d10b279c7944b52bd61c5"
+    },
+    {
+      "path": "vendor/three/addons/postprocessing/RenderPass.js",
+      "bytes": 4112,
+      "sha256": "fd91229aacc5830e3984b0f2bdefcf566163ea028f4c1f1ab233fa6665a133ac"
+    },
+    {
+      "path": "vendor/three/addons/postprocessing/ShaderPass.js",
+      "bytes": 3228,
+      "sha256": "e2500a5913b26bbf5148ceaae644c6edcff06a18b01494ee37bf856353d2ab9d"
+    },
+    {
+      "path": "vendor/three/addons/postprocessing/UnrealBloomPass.js",
+      "bytes": 14388,
+      "sha256": "d92742959879b461f25348b2abddc7ca0d48527e7718340bcfa29fa771e2799a"
+    },
+    {
+      "path": "vendor/three/addons/shaders/BokehShader.js",
+      "bytes": 5940,
+      "sha256": "c47a17eae9f70405025a5149a68f1265de5d5dba5d61282927fb94b0bb3d0619"
+    },
+    {
+      "path": "vendor/three/addons/shaders/CopyShader.js",
+      "bytes": 729,
+      "sha256": "a33057d5ac91c43304c186ac0e8816e62bb2ed471d3a00ff3018dfd5c0389718"
+    },
+    {
+      "path": "vendor/three/addons/shaders/LuminosityHighPassShader.js",
+      "bytes": 1291,
+      "sha256": "5044f780b6e6cf863947f64c36fe1587132f7fbe395ada863cd1e5f0388dcf1e"
+    },
+    {
+      "path": "vendor/three/addons/shaders/OutputShader.js",
+      "bytes": 1876,
+      "sha256": "353479f77a8d7e2629d49ccac9fc2f5dbfdda5442e0adf867b00377a2fcb0cb2"
+    },
+    {
+      "path": "vendor/three/three.core.js",
+      "bytes": 1403455,
+      "sha256": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20"
+    },
+    {
+      "path": "vendor/three/three.module.js",
+      "bytes": 603113,
+      "sha256": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a"
+    }
+  ]
+}

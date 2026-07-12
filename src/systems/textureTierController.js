@@ -5,6 +5,10 @@ export function chooseBulkTextureTier({ quality, coarsePointer, deviceMemory }) 
   return requested === 'high' ? 'medium' : requested;
 }
 
+function supportsFocusedHighDetail(quality) {
+  return quality === 'high' || quality === 'ultra';
+}
+
 export function createTextureTierController({
   materialSystem,
   planetIds,
@@ -39,7 +43,7 @@ export function createTextureTierController({
       deviceMemory,
     });
     const mustReconcile = nextBulkTier !== currentBulkTier
-      || (previousQuality === 'high' && nextQuality !== 'high');
+      || (supportsFocusedHighDetail(previousQuality) && !supportsFocusedHighDetail(nextQuality));
     currentBulkTier = nextBulkTier;
     if (!mustReconcile) return [];
 
@@ -52,14 +56,14 @@ export function createTextureTierController({
   }
 
   function focusPlanet(id) {
-    if (currentQuality !== 'high' || !planetSet.has(id)) return Promise.resolve(null);
+    if (!supportsFocusedHighDetail(currentQuality) || !planetSet.has(id)) return Promise.resolve(null);
     const current = materialSystem.getMaterialBundle(id);
     if (current?.tier === 'high') return Promise.resolve(current);
     if (pendingHigh.has(id)) return pendingHigh.get(id);
 
     const operation = Promise.resolve(materialSystem.upgradeBody(id, 'high'))
       .then((bundle) => {
-        if (currentQuality !== 'high') return materialSystem.getMaterialBundle(id) || null;
+        if (!supportsFocusedHighDetail(currentQuality)) return materialSystem.getMaterialBundle(id) || null;
         return applyCurrent(id, bundle);
       })
       .finally(() => {

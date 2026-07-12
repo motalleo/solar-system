@@ -11,6 +11,7 @@ const QUALITY_SEGMENTS = Object.freeze({
   low: [20, 12],
   medium: [32, 20],
   high: [48, 30],
+  ultra: [64, 40],
 });
 
 const J2000_UTC_MS = Date.UTC(2000, 0, 1, 12);
@@ -27,7 +28,7 @@ function hashUnit(id, index) {
 }
 
 function createProceduralSurface(data, quality, three) {
-  const width = quality === 'high' ? 512 : quality === 'medium' ? 384 : 256;
+  const width = quality === 'ultra' ? 640 : quality === 'high' ? 512 : quality === 'medium' ? 384 : 256;
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = width / 2;
@@ -41,7 +42,7 @@ function createProceduralSurface(data, quality, three) {
 
   const icy = ['europa', 'enceladus', 'miranda', 'ariel', 'umbriel', 'titania', 'oberon', 'triton'].includes(data.id);
   context.globalCompositeOperation = icy ? 'screen' : 'multiply';
-  const featureCount = quality === 'high' ? 72 : quality === 'medium' ? 48 : 30;
+  const featureCount = quality === 'ultra' ? 96 : quality === 'high' ? 72 : quality === 'medium' ? 48 : 30;
   for (let index = 0; index < featureCount; index += 1) {
     const x = hashUnit(data.id, index * 4) * canvas.width;
     const y = hashUnit(data.id, index * 4 + 1) * canvas.height;

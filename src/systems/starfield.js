@@ -4,6 +4,7 @@ const QUALITY_COUNTS = {
   low: [2200, 900, 360],
   medium: [5200, 1900, 720],
   high: [9000, 3400, 1300],
+  ultra: [12800, 5000, 1900],
 };
 
 function mulberry32(seed) {

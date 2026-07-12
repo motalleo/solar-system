@@ -17,6 +17,7 @@ const SUN_SURFACE_FRAGMENT_SHADER = `
   uniform float uIntensity;
   uniform float uDim;
   uniform float uOctaves;
+  uniform float uSpotStrength;
 
   float hash21(vec2 point) {
     point = fract(point * vec2(123.34, 456.21));
@@ -57,10 +58,15 @@ const SUN_SURFACE_FRAGMENT_SHADER = `
     vec3 base = texture2D(uMap, movingUv).rgb;
     float granulation = surfaceNoise(vUv * vec2(34.0, 17.0) + vec2(uTime * 0.055, -uTime * 0.034));
     float fineCells = noise(vUv * vec2(91.0, 45.5) - vec2(uTime * 0.018, uTime * 0.025));
+    float spotField = noise(vUv * vec2(19.0, 10.0) + vec2(uTime * 0.004, -uTime * 0.001));
+    spotField += noise(vUv * vec2(47.0, 23.0) - vec2(uTime * 0.007, uTime * 0.002)) * 0.34;
+    float sunspotMask = smoothstep(0.98, 1.20, spotField)
+      * smoothstep(0.98, 0.24, latitude);
     float limb = pow(1.0 - abs(vNormalView.z), 2.15);
     vec3 warm = mix(vec3(1.0, 0.22, 0.008), vec3(1.0, 0.9, 0.42), granulation);
     vec3 color = mix(base, warm, 0.26 + fineCells * 0.18);
     color += (granulation - 0.42) * vec3(0.68, 0.18, 0.015);
+    color = mix(color, color * vec3(0.26, 0.17, 0.12), sunspotMask * uSpotStrength);
     color += limb * vec3(0.92, 0.2, 0.008) * 0.38;
     gl_FragColor = vec4(color * (1.2 + uIntensity * 0.2) * uDim, 1.0);
   }
@@ -139,7 +145,8 @@ function coronaFragmentShader(octaves) {
 }
 
 export function createSunSurfaceMaterial(three, texture, quality = 'medium') {
-  const octaveByQuality = { high: 4, medium: 3, low: 1 };
+  const octaveByQuality = { ultra: 4, high: 4, medium: 3, low: 1 };
+  const spotStrengthByQuality = { ultra: 0.42, high: 0.34, medium: 0.22, low: 0.08 };
   return new three.ShaderMaterial({
     uniforms: {
       uMap: { value: texture },
@@ -147,6 +154,7 @@ export function createSunSurfaceMaterial(three, texture, quality = 'medium') {
       uIntensity: { value: 1 },
       uDim: { value: 1 },
       uOctaves: { value: octaveByQuality[quality] || octaveByQuality.medium },
+      uSpotStrength: { value: spotStrengthByQuality[quality] || spotStrengthByQuality.medium },
     },
     vertexShader: SUN_SURFACE_VERTEX_SHADER,
     fragmentShader: SUN_SURFACE_FRAGMENT_SHADER,

@@ -2,6 +2,7 @@ const BLOOM = {
   low: { strength: 0.54, radius: 0.24, threshold: 0.78, scale: 0.62 },
   medium: { strength: 0.76, radius: 0.34, threshold: 0.72, scale: 0.8 },
   high: { strength: 0.88, radius: 0.4, threshold: 0.68, scale: 1 },
+  ultra: { strength: 0.92, radius: 0.42, threshold: 0.66, scale: 1 },
 };
 
 export function createPostprocessingRuntime(
@@ -66,7 +67,7 @@ export function createPostprocessingRuntime(
     bokehPass.uniforms.aperture.value = depthOfField.aperture;
     bokehPass.uniforms.maxblur.value = depthOfField.maxBlur;
     bokehPass.enabled = depthOfFieldRequested
-      && currentQuality === 'high'
+      && (currentQuality === 'high' || currentQuality === 'ultra')
       && !capabilities.coarsePointer
       && !capabilities.reducedMotion;
     return bokehPass.enabled;

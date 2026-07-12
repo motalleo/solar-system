@@ -1,4 +1,4 @@
-const ALLOWED_MULTIPLIERS = new Set([0.5, 1, 5, 20, 100]);
+const ALLOWED_MULTIPLIERS = new Set([0.5, 1, 5, 20, 100, 1000, 10000]);
 
 export function createTimeSystem() {
   let elapsed = 0;

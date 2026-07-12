@@ -26,6 +26,18 @@ function safeStop(source) {
   }
 }
 
+const ORIGINAL_TRACK_URL = './assets/audio/deep-space-original.mp3';
+
+function createAudioElement(trackUrl) {
+  const scope = typeof window === 'undefined' ? globalThis : window;
+  const AudioConstructor = scope.Audio;
+  if (typeof AudioConstructor !== 'function') return null;
+  const element = new AudioConstructor(trackUrl);
+  element.loop = true;
+  element.preload = 'auto';
+  return element;
+}
+
 /**
  * Creates a muted-by-default synthesized spatial audio controller.
  * AudioContext creation is deliberately deferred until enable() is called by a user gesture.
@@ -35,6 +47,9 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
   let ambientOscillator = null;
   let ambientFilter = null;
   let ambientGain = null;
+  let mediaTrack = null;
+  let outputBus = null;
+  let compressor = null;
   let enabled = false;
   let disposed = false;
   let enablePromise = null;
@@ -79,6 +94,25 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
     safeDisconnect(effect.panner);
   }
 
+  function createProtectedOutput(audioContext) {
+    if (typeof audioContext.createDynamicsCompressor !== 'function') {
+      return { destination: audioContext.destination, outputBus: null, compressor: null };
+    }
+
+    const master = audioContext.createGain();
+    const limiter = audioContext.createDynamicsCompressor();
+    const now = audioContext.currentTime;
+    setParam(master.gain, 0.95, now);
+    setParam(limiter.threshold, -20, now);
+    setParam(limiter.knee, 16, now);
+    setParam(limiter.ratio, 7, now);
+    setParam(limiter.attack, 0.008, now);
+    setParam(limiter.release, 0.28, now);
+    master.connect(limiter);
+    limiter.connect(audioContext.destination);
+    return { destination: master, outputBus: master, compressor: limiter };
+  }
+
   function closeContext(audioContext) {
     if (!audioContext || closedContexts.has(audioContext)) return;
     closedContexts.add(audioContext);
@@ -92,6 +126,18 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
 
   function clearGraph() {
     activeEffects.forEach((effect) => releaseEffect(effect));
+    if (mediaTrack) {
+      try {
+        mediaTrack.element.pause();
+        mediaTrack.element.currentTime = 0;
+      } catch (error) {
+        // Media playback teardown is intentionally best-effort.
+      }
+      safeDisconnect(mediaTrack.source);
+      safeDisconnect(mediaTrack.filter);
+      safeDisconnect(mediaTrack.gain);
+      safeDisconnect(mediaTrack.panner);
+    }
     safeStop(ambientOscillator);
     safeDisconnect(ambientOscillator);
     safeDisconnect(ambientFilter);
@@ -99,13 +145,18 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
     ambientOscillator = null;
     ambientFilter = null;
     ambientGain = null;
+    mediaTrack = null;
+    safeDisconnect(outputBus);
+    safeDisconnect(compressor);
+    outputBus = null;
+    compressor = null;
 
     const closingContext = context;
     context = null;
     closeContext(closingContext);
   }
 
-  function createAmbientLayer(audioContext) {
+  function createAmbientLayer(audioContext, destination) {
     const oscillator = audioContext.createOscillator();
     const filter = audioContext.createBiquadFilter();
     const gain = audioContext.createGain();
@@ -115,13 +166,62 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
     filter.type = 'lowpass';
     setParam(filter.frequency, 180, audioContext.currentTime);
     setParam(filter.Q, 0.72, audioContext.currentTime);
-    setParam(gain.gain, 0.018, audioContext.currentTime);
+    setParam(gain.gain, 0.028, audioContext.currentTime);
 
     oscillator.connect(filter);
     filter.connect(gain);
-    gain.connect(audioContext.destination);
+    gain.connect(destination);
     oscillator.start(audioContext.currentTime);
     return { oscillator, filter, gain };
+  }
+
+  function createOriginalMusicTrack(audioContext, destination) {
+    if (typeof audioContext.createMediaElementSource !== 'function') return null;
+    const element = createAudioElement(ORIGINAL_TRACK_URL);
+    if (!element) return null;
+
+    try {
+      const source = audioContext.createMediaElementSource(element);
+      const filter = audioContext.createBiquadFilter();
+      const gain = audioContext.createGain();
+      const panner = audioContext.createPanner();
+      const now = audioContext.currentTime;
+      filter.type = 'lowpass';
+      setParam(filter.frequency, 14800, now);
+      setParam(filter.Q, 0.45, now);
+      setParam(gain.gain, 1.16, now);
+      panner.panningModel = 'HRTF';
+      panner.distanceModel = 'inverse';
+      panner.refDistance = 1;
+      panner.maxDistance = 32;
+      panner.rolloffFactor = 0.12;
+      if (panner.positionX && panner.positionY && panner.positionZ) {
+        setParam(panner.positionX, 0, now);
+        setParam(panner.positionY, -0.6, now);
+        setParam(panner.positionZ, -2.5, now);
+      } else if (typeof panner.setPosition === 'function') {
+        panner.setPosition(0, -0.6, -2.5);
+      }
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(panner);
+      panner.connect(destination);
+      return { element, source, filter, gain, panner };
+    } catch (error) {
+      try {
+        element.pause();
+      } catch (pauseError) {
+        // The track remains optional when a browser cannot create a media source.
+      }
+      return null;
+    }
+  }
+
+  function startOriginalMusic(track) {
+    if (!track?.element || typeof track.element.play !== 'function') return;
+    Promise.resolve(track.element.play()).catch(() => {
+      // Playback can still be denied by a browser; cues and synthesized ambience remain available.
+    });
   }
 
   function trackEnable(operation) {
@@ -202,13 +302,19 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
           return false;
         }
 
-        const ambient = createAmbientLayer(candidate);
+        const protectedOutput = createProtectedOutput(candidate);
+        const ambient = createAmbientLayer(candidate, protectedOutput.destination);
+        const track = createOriginalMusicTrack(candidate, protectedOutput.destination);
         context = candidate;
         ambientOscillator = ambient.oscillator;
         ambientFilter = ambient.filter;
         ambientGain = ambient.gain;
+        mediaTrack = track;
+        outputBus = protectedOutput.outputBus;
+        compressor = protectedOutput.compressor;
         pendingCandidate = null;
         enabled = true;
+        startOriginalMusic(track);
         if (!await reconcileVisibilityIntent(candidate, candidateGeneration)) {
           enabled = false;
           clearGraph();
@@ -281,7 +387,7 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
       panner.rolloffFactor = 0.65;
       oscillator.connect(gain);
       gain.connect(panner);
-      panner.connect(context.destination);
+      panner.connect(outputBus || context.destination);
 
       const effect = { oscillator, gain, panner, released: false };
       activeEffects.add(effect);

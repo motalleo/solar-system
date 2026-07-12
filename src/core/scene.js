@@ -5,6 +5,7 @@ const PIXEL_RATIOS = {
   low: 1,
   medium: 1.5,
   high: 2,
+  ultra: 2,
 };
 
 export function createScene(canvas, quality = 'medium') {
@@ -27,7 +28,7 @@ export function createScene(canvas, quality = 'medium') {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.86;
-  renderer.shadowMap.enabled = quality === 'high';
+  renderer.shadowMap.enabled = quality === 'high' || quality === 'ultra';
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const mobileCap = matchMedia('(pointer: coarse)').matches ? 1.25 : Infinity;
@@ -70,7 +71,7 @@ export function createScene(canvas, quality = 'medium') {
 
   function setQuality(nextQuality) {
     setPixelRatio(nextQuality);
-    renderer.shadowMap.enabled = nextQuality === 'high';
+    renderer.shadowMap.enabled = nextQuality === 'high' || nextQuality === 'ultra';
     resize();
   }
 
@@ -94,4 +95,3 @@ export function createScene(canvas, quality = 'medium') {
     dispose,
   };
 }
-

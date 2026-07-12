@@ -1,6 +1,6 @@
 import { TEXTURE_MANIFEST } from '../data/textureManifest.js';
 
-const TIERS = new Set(['low', 'medium', 'high']);
+const TIERS = new Set(['low', 'medium', 'high', 'ultra']);
 const ROCKY_PLANETS = new Set(['mercury', 'venus', 'earth', 'mars']);
 const GAS_PLANETS = new Set(['jupiter', 'saturn', 'uranus', 'neptune']);
 const COLOR_CHANNELS = new Set(['albedo', 'night']);
@@ -10,8 +10,8 @@ export function chooseTextureTier({ quality, coarsePointer = false, deviceMemory
   const memory = Number.isFinite(deviceMemory) ? deviceMemory : 8;
   if (memory <= 2) return 'low';
   if (coarsePointer && memory <= 4) return requested === 'low' ? 'low' : 'medium';
-  if (coarsePointer && requested === 'high') return 'medium';
-  return requested;
+  if (coarsePointer && (requested === 'high' || requested === 'ultra')) return 'medium';
+  return requested === 'ultra' ? 'high' : requested;
 }
 
 function disposeBundle(bundle) {

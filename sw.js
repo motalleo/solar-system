@@ -1,5 +1,6 @@
 const CORE_CACHE = 'solar-core-v1';
 const TEXTURE_CACHE = 'solar-textures-v1';
+const AUDIO_CACHE = 'solar-audio-v1';
 const CACHE_PREFIX = 'solar-';
 const BASE_URL = new URL('./', self.location);
 const APP_SHELL_URL = new URL('./index.html', BASE_URL).href;
@@ -26,6 +27,7 @@ const CORE_ASSETS = [
   './src/systems/asteroidBelt.js',
   './src/systems/cameraDirector.js',
   './src/systems/coronaSystem.js',
+  './src/systems/diagnostics.js',
   './src/systems/ephemerisSystem.js',
   './src/systems/interaction.js',
   './src/systems/materialSystem.js',
@@ -92,6 +94,12 @@ const OPTIONAL_TEXTURES = [
   './assets/textures/low/venus_roughness.jpg',
 ];
 
+// Music is deliberately cached after the visitor enables sound, not during app installation.
+// This keeps the first mobile PWA install quick while preserving offline replay after one listen.
+const OPTIONAL_AUDIO = [
+  './assets/audio/deep-space-original.mp3',
+];
+
 function resolveAsset(asset) {
   return new URL(asset, BASE_URL).href;
 }
@@ -134,7 +142,7 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
-    const currentCaches = new Set([CORE_CACHE, TEXTURE_CACHE]);
+    const currentCaches = new Set([CORE_CACHE, TEXTURE_CACHE, AUDIO_CACHE]);
     const cacheNames = await caches.keys();
     await Promise.all(cacheNames
       .filter((name) => name.startsWith(CACHE_PREFIX) && !currentCaches.has(name))
@@ -171,6 +179,11 @@ function isPackagedTexture(url) {
     && url.pathname.startsWith(new URL('./assets/textures/', BASE_URL).pathname);
 }
 
+function isPackagedAudio(url) {
+  return url.origin === self.location.origin
+    && url.pathname.startsWith(new URL('./assets/audio/', BASE_URL).pathname);
+}
+
 async function textureCacheFirst(event) {
   const { request } = event;
   const cache = await caches.open(TEXTURE_CACHE);
@@ -185,6 +198,16 @@ async function textureCacheFirst(event) {
     }
     return cached;
   }
+  const response = await fetch(request);
+  if (response.ok) await cache.put(request, response.clone());
+  return response;
+}
+
+async function audioCacheFirst(event) {
+  const { request } = event;
+  const cache = await caches.open(AUDIO_CACHE);
+  const cached = await cache.match(request);
+  if (cached) return cached;
   const response = await fetch(request);
   if (response.ok) await cache.put(request, response.clone());
   return response;
@@ -206,6 +229,10 @@ self.addEventListener('fetch', (event) => {
   }
   if (isPackagedTexture(url)) {
     event.respondWith(textureCacheFirst(event));
+    return;
+  }
+  if (isPackagedAudio(url)) {
+    event.respondWith(audioCacheFirst(event));
   }
 });
 

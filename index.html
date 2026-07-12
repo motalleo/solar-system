@@ -108,6 +108,17 @@
           <button id="update-app-button" type="button" hidden>立即更新</button>
         </aside>
 
+        <aside id="performance-hud" class="performance-hud glass-panel" aria-label="实时性能诊断" hidden>
+          <span class="performance-hud-title">实时性能</span>
+          <dl>
+            <div><dt>FPS</dt><dd id="diagnostics-fps">—</dd></div>
+            <div><dt>1% LOW</dt><dd id="diagnostics-p1-fps">—</dd></div>
+            <div><dt>DRAW</dt><dd id="diagnostics-draw-calls">—</dd></div>
+            <div><dt>TRIS</dt><dd id="diagnostics-triangles">—</dd></div>
+            <div><dt>TEX / GEO</dt><dd id="diagnostics-memory">—</dd></div>
+          </dl>
+        </aside>
+
         <nav id="body-nav" class="body-nav glass-panel" aria-label="星球导航"></nav>
 
         <aside id="info-panel" class="info-panel glass-panel" aria-live="polite" aria-hidden="true">
@@ -135,6 +146,8 @@
               <button type="button" data-speed="5">5×</button>
               <button type="button" data-speed="20">20×</button>
               <button type="button" data-speed="100">100×</button>
+              <button type="button" data-speed="1000">1000×</button>
+              <button type="button" data-speed="10000">10000×</button>
             </div>
           </div>
           <button id="reset-time" class="reset-button" type="button">重置时间</button>
@@ -186,6 +199,11 @@
               <input id="toggle-labels" type="checkbox" checked />
               <i aria-hidden="true"></i>
             </label>
+            <label class="switch-row">
+              <span>实时性能</span>
+              <input id="toggle-diagnostics" type="checkbox" />
+              <i aria-hidden="true"></i>
+            </label>
           </div>
 
           <fieldset class="setting-group segmented-setting">
@@ -199,10 +217,12 @@
 
           <fieldset class="setting-group segmented-setting">
             <legend>画质</legend>
-            <div id="quality-options" class="segmented-control three-up">
+            <div id="quality-options" class="segmented-control">
+              <button type="button" data-quality="auto">自动</button>
               <button type="button" data-quality="low">低</button>
               <button type="button" data-quality="medium" class="is-active">中</button>
               <button type="button" data-quality="high">高</button>
+              <button type="button" data-quality="ultra">Ultra</button>
             </div>
           </fieldset>
 

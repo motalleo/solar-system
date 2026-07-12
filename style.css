@@ -377,6 +377,7 @@ button:active {
 .info-panel,
 .time-controls,
 .settings-panel,
+.pwa-status,
 .hover-label,
 .camera-hint {
   pointer-events: auto;
@@ -423,6 +424,62 @@ button:active {
 .top-actions {
   display: flex;
   gap: 8px;
+}
+
+.install-button {
+  border-color: rgba(142, 201, 230, 0.34);
+}
+
+.install-glyph {
+  border-bottom: 1px solid currentColor;
+  font-size: 14px;
+  line-height: 12px;
+}
+
+.pwa-status {
+  position: absolute;
+  top: calc(var(--safe-top) + 52px);
+  right: var(--safe-right);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(340px, calc(100vw - 28px));
+  min-height: 34px;
+  padding: 6px 8px 6px 11px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+
+.pwa-status[hidden] {
+  display: none;
+}
+
+.pwa-status-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #78bea5;
+  box-shadow: 0 0 12px rgba(120, 190, 165, 0.58);
+}
+
+.pwa-status[data-state="updateAvailable"] .pwa-status-dot {
+  background: var(--accent-strong);
+  box-shadow: 0 0 12px rgba(142, 201, 230, 0.58);
+}
+
+.pwa-status button {
+  min-height: 28px;
+  margin-left: 3px;
+  padding: 0 10px;
+  border: 1px solid rgba(142, 201, 230, 0.35);
+  border-radius: 999px;
+  background: rgba(142, 201, 230, 0.1);
+  color: #dceaf0;
+  font: inherit;
+  cursor: pointer;
 }
 
 .icon-button {
@@ -1189,6 +1246,13 @@ noscript {
     gap: 6px;
   }
 
+  .pwa-status {
+    top: calc(var(--safe-top) + 50px);
+    right: var(--safe-right);
+    left: auto;
+    max-width: calc(100vw - var(--safe-left) - var(--safe-right));
+  }
+
   .body-nav {
     top: auto;
     left: var(--safe-left);
@@ -1359,5 +1423,57 @@ noscript {
     background: var(--surface-solid);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
+  }
+}
+
+.performance-hud {
+  position: fixed;
+  z-index: 8;
+  top: calc(var(--safe-top) + 78px);
+  right: var(--safe-right);
+  width: 184px;
+  padding: 13px 14px;
+  pointer-events: none;
+  color: rgba(233, 244, 250, 0.88);
+}
+
+.performance-hud-title {
+  display: block;
+  margin-bottom: 9px;
+  color: rgba(142, 201, 230, 0.92);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.performance-hud dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  margin: 0;
+}
+
+.performance-hud dl > div:last-child {
+  grid-column: 1 / -1;
+}
+
+.performance-hud dt {
+  color: rgba(172, 198, 214, 0.6);
+  font-size: 8px;
+  letter-spacing: 0.09em;
+}
+
+.performance-hud dd {
+  margin: 2px 0 0;
+  color: #f1f8fc;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .performance-hud {
+    top: calc(var(--safe-top) + 66px);
+    width: 156px;
+    padding: 10px 12px;
   }
 }

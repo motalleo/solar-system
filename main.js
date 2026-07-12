@@ -12,6 +12,7 @@ import { createEphemerisSystem } from './src/systems/ephemerisSystem.js';
 import { createCameraDirector } from './src/systems/cameraDirector.js';
 import { createInteraction } from './src/systems/interaction.js';
 import { createSpatialAudio } from './src/systems/spatialAudio.js';
+import { createDiagnostics } from './src/systems/diagnostics.js';
 import {
   createPerformanceManager,
   applyDepthOfFieldRuntime,
@@ -23,6 +24,11 @@ import {
   writeBooleanPreference,
 } from './src/systems/performance.js';
 import { createInterface, parseEphemerisDate } from './src/ui/interface.js';
+import { createPwaLifecycle } from './src/pwa/pwaLifecycle.js';
+import {
+  createRuntimeLifecycle,
+  runFramePipeline,
+} from './src/runtime/runtimeLifecycle.js';
 
 document.documentElement.classList.add('js');
 document.documentElement.dataset.bodyCount = String(CELESTIAL_BODIES.length);
@@ -40,9 +46,8 @@ let cameraDirector;
 let interaction;
 let spatialAudio;
 let performanceManager;
-let animationFrame = 0;
+let diagnostics;
 let resizeFrame = 0;
-let renderingPaused = false;
 let disposed = false;
 const openingTweens = [];
 const coarsePointerQuery = matchMedia('(pointer: coarse)');
@@ -55,7 +60,9 @@ const depthOfFieldStorage = getSafeStorage(window);
 let pageFocused = isPageFocused(document);
 let depthCapabilityObserver;
 let audioEnabled = false;
+let audioTogglePromise = null;
 const audioFocusTarget = new THREE.Vector3();
+let pendingPwaToast = null;
 
 let depthOfFieldPreference = readBooleanPreference(
   depthOfFieldStorage,
@@ -67,6 +74,29 @@ function wait(milliseconds) {
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
+const runtimeLifecycle = createRuntimeLifecycle({
+  requestFrame: (callback) => requestAnimationFrame(callback),
+  cancelFrame: (id) => cancelAnimationFrame(id),
+  initialHidden: document.hidden,
+  onFrame: renderFrame,
+  onDisposeError: (error) => console.warn('模块清理失败', error),
+});
+const ownDisposable = (resource) => runtimeLifecycle.own(resource);
+
+const pwaLifecycle = ownDisposable(createPwaLifecycle({
+  windowObject: window,
+  navigatorObject: navigator,
+  locationObject: location,
+  serviceWorkerUrl: new URL('./sw.js', import.meta.url),
+  scopeUrl: new URL('./', import.meta.url),
+  onStateChange: (state) => ui?.setPwaState(state),
+  onToast: (message, duration) => {
+    if (ui) ui.toast(message, duration);
+    else pendingPwaToast = [message, duration];
+  },
+  onWarning: (message, error) => console.warn(message, error),
+}));
+
 function setSceneQuality(quality) {
   sceneCore?.setQuality(quality);
   postprocessing?.setQuality(quality);
@@ -74,7 +104,10 @@ function setSceneQuality(quality) {
   satelliteSystem?.setQuality(quality);
   starfield?.setQuality(quality);
   asteroidBelt?.setQuality(quality);
-  ui?.setQuality(quality);
+  ui?.setQuality(quality, performanceManager?.mode);
+  if ((quality === 'high' || quality === 'ultra') && cameraDirector?.focusedId) {
+    void solarSystem?.upgradeFocusedTexture(cameraDirector.focusedId);
+  }
   syncDepthOfField();
   handleResize();
 }
@@ -118,7 +151,7 @@ function syncDepthOfField() {
 }
 
 function handleResize() {
-  if (resizeFrame) return;
+  if (runtimeLifecycle.hidden || resizeFrame) return;
   resizeFrame = requestAnimationFrame(() => {
     resizeFrame = 0;
     sceneCore?.resize();
@@ -141,57 +174,87 @@ function syncEphemerisPresentation() {
 }
 
 function renderFrame() {
-  if (disposed || renderingPaused) return;
+  if (disposed) return;
+  diagnostics?.beginFrame(performance.now());
   performanceManager.beginFrame();
-
-  const realDelta = Math.min(sceneCore.clock.getDelta(), 0.1);
-  const simulationDelta = timeSystem.tick(realDelta);
-  const ambientElapsed = performance.now() / 1000;
-
-  const previousDate = ephemeris.date.getTime();
-  if (simulationDelta > 0) ephemeris.advance(realDelta, timeSystem.multiplier);
-  if (ephemeris.date.getTime() !== previousDate) syncEphemerisPresentation();
-
-  solarSystem.update(timeSystem.elapsed, simulationDelta);
-  satelliteSystem.update(ephemeris.date, simulationDelta);
-  asteroidBelt.update(realDelta, timeSystem.paused ? 0 : timeSystem.multiplier);
-  cameraDirector.update();
-  interaction.update();
-  sceneCore.controls.update();
-  const focusedId = cameraDirector.focusedId;
-  if (focusedId) {
-    solarSystem.getBodyPosition(focusedId, audioFocusTarget);
-    spatialAudio.setFocusPosition(audioFocusTarget);
-  }
-  spatialAudio.update();
-  syncDepthOfField();
-  starfield.update(sceneCore.camera, ambientElapsed);
-  postprocessing.render(realDelta);
-
+  runFramePipeline({
+    updateDateAndTime() {
+      const realDelta = Math.min(sceneCore.clock.getDelta(), 0.1);
+      const simulationDelta = timeSystem.tick(realDelta);
+      const previousDate = ephemeris.date.getTime();
+      if (simulationDelta > 0) ephemeris.advance(realDelta, timeSystem.multiplier);
+      if (ephemeris.date.getTime() !== previousDate) {
+        ui.setDate(formatDateInput(ephemeris.date));
+        ui.setDateMode(ephemeris.mode);
+      }
+      return {
+        realDelta,
+        simulationDelta,
+        ambientElapsed: performance.now() / 1000,
+      };
+    },
+    createEphemerisSnapshot() {
+      return ephemeris.getSnapshot();
+    },
+    updatePlanets(timing, snapshot) {
+      solarSystem.setEphemerisSnapshot(snapshot, ephemeris.date);
+      solarSystem.update(timeSystem.elapsed, timing.simulationDelta);
+    },
+    updateSatellites(timing) {
+      satelliteSystem.update(ephemeris.date, timing.simulationDelta);
+      asteroidBelt.update(
+        timing.realDelta,
+        timeSystem.paused ? 0 : timeSystem.multiplier,
+      );
+    },
+    // Solar-system ownership includes creation/disposal; this explicit stage fixes frame order.
+    updateCorona(timing) {
+      solarSystem.updateCorona(timeSystem.elapsed, timing.simulationDelta);
+    },
+    updateCamera() {
+      cameraDirector.update();
+    },
+    updateDepthOfField() {
+      syncDepthOfField();
+    },
+    updateSpatialAudio() {
+      const focusedId = cameraDirector.focusedId;
+      if (focusedId) {
+        solarSystem.getBodyPosition(focusedId, audioFocusTarget);
+        spatialAudio.setFocusPosition(audioFocusTarget);
+      }
+      spatialAudio.update();
+    },
+    updateControls() {
+      interaction.update();
+      sceneCore.controls.update();
+    },
+    updateStarfield(timing) {
+      starfield.update(sceneCore.camera, timing.ambientElapsed);
+    },
+    renderComposer(timing) {
+      postprocessing.render(timing.realDelta);
+    },
+  });
   performanceManager.endFrame();
-  animationFrame = requestAnimationFrame(renderFrame);
-}
-
-function startRendering() {
-  if (disposed || renderingPaused || animationFrame) return;
-  sceneCore.clock.start();
-  animationFrame = requestAnimationFrame(renderFrame);
-}
-
-function stopRendering() {
-  if (animationFrame) cancelAnimationFrame(animationFrame);
-  animationFrame = 0;
-  sceneCore?.clock.stop();
+  diagnostics?.endFrame(performance.now());
 }
 
 function handleVisibilityChange() {
   pageFocused = isPageFocused(document);
-  renderingPaused = document.hidden;
-  if (renderingPaused) {
+  runtimeLifecycle.setHidden(document.hidden);
+  diagnostics?.resetFrames();
+  if (document.hidden) {
+    if (resizeFrame) cancelAnimationFrame(resizeFrame);
+    resizeFrame = 0;
     disableDepthOfField();
-    stopRendering();
+    sceneCore?.clock.stop();
+    void spatialAudio?.suspendForVisibility();
   } else {
-    startRendering();
+    if (audioEnabled) void spatialAudio?.resumeForVisibility();
+    sceneCore?.resize();
+    postprocessing?.resize();
+    sceneCore?.clock.start();
     syncDepthOfField();
   }
 }
@@ -217,6 +280,9 @@ async function focusBody(id) {
   spatialAudio?.setFocusPosition(audioFocusTarget);
   spatialAudio?.playSelect();
   await cameraDirector.focus(id);
+  if (!disposed && cameraDirector.focusedId === id) {
+    await solarSystem.upgradeFocusedTexture(id);
+  }
 }
 
 async function showOverview() {
@@ -228,15 +294,25 @@ async function showOverview() {
   await cameraDirector.overview();
 }
 
-async function toggleSpatialAudio() {
-  if (audioEnabled) {
-    spatialAudio?.disable();
-    audioEnabled = false;
-    return false;
-  }
-  audioEnabled = Boolean(await spatialAudio?.enable());
-  if (!audioEnabled) ui.toast('当前浏览器不支持 Web Audio 空间音效');
-  return audioEnabled;
+function toggleSpatialAudio() {
+  if (audioTogglePromise) return audioTogglePromise;
+  const operation = (async () => {
+    if (audioEnabled) {
+      spatialAudio?.disable();
+      audioEnabled = false;
+      return false;
+    }
+    audioEnabled = Boolean(await spatialAudio?.enable());
+    if (audioEnabled && !document.hidden) await spatialAudio.resumeForVisibility();
+    if (!audioEnabled) ui.toast('当前浏览器不支持 Web Audio 空间音效');
+    return audioEnabled;
+  })();
+  audioTogglePromise = operation;
+  const clearPending = () => {
+    if (audioTogglePromise === operation) audioTogglePromise = null;
+  };
+  operation.then(clearPending, clearPending);
+  return operation;
 }
 
 function toggleTime() {
@@ -296,8 +372,12 @@ function changeScaleMode(mode) {
 }
 
 function changeQuality(quality) {
-  performanceManager.setQuality(quality);
-  ui.toast(`画质已切换为${{ low: '低', medium: '中', high: '高' }[quality]}档`, 1800);
+  const activeQuality = performanceManager.setQuality(quality);
+  ui.setQuality(activeQuality, performanceManager.mode);
+  const label = quality === 'auto'
+    ? `自动（当前 ${{ low: '低', medium: '中', high: '高', ultra: 'Ultra' }[activeQuality]}）`
+    : ({ low: '低', medium: '中', high: '高', ultra: 'Ultra' }[activeQuality] || '中');
+  ui.toast(`画质已切换为${label}档`, 1800);
 }
 
 function changeDepthOfField(enabled) {
@@ -363,7 +443,7 @@ function runOpeningChoreography() {
 
 async function initialise() {
   ephemeris = createEphemerisSystem(new Date());
-  ui = createInterface(CELESTIAL_BODIES, {
+  ui = ownDisposable(createInterface(CELESTIAL_BODIES, {
     onStart: async () => {
       ui.enterApp();
       interaction.setEnabled(true);
@@ -380,32 +460,48 @@ async function initialise() {
     onOrbits: (visible) => solarSystem.setOrbitsVisible(visible),
     onAsteroids: (visible) => asteroidBelt.setVisible(visible),
     onLabels: (visible) => solarSystem.setLabelsVisible(visible),
+    onDiagnostics: (visible) => {
+      diagnostics?.resetFrames();
+      ui.setDiagnosticsVisible(visible);
+    },
     onScaleMode: changeScaleMode,
     onQuality: changeQuality,
     onDepthOfField: changeDepthOfField,
     onCruise: toggleCruise,
     onToggleSound: toggleSpatialAudio,
-  });
+    onInstallApp: () => pwaLifecycle.requestInstall(),
+    onUpdateApp: () => pwaLifecycle.requestUpdate(),
+  }));
+  ui.setPwaState(pwaLifecycle.getState());
+  if (pendingPwaToast) {
+    ui.toast(...pendingPwaToast);
+    pendingPwaToast = null;
+  }
   ui.setLoading(0.04, '初始化 WebGL 环境');
 
   const canvas = document.getElementById('space-canvas');
   const initialQuality = inferQuality();
-  sceneCore = createScene(canvas, initialQuality);
-  spatialAudio = createSpatialAudio({ camera: sceneCore.camera });
+  sceneCore = ownDisposable(createScene(canvas, initialQuality));
+  diagnostics = ownDisposable(createDiagnostics({
+    renderer: sceneCore.renderer,
+    onSnapshot: (snapshot) => ui?.setDiagnostics(snapshot),
+  }));
+  diagnostics.mark('webgl-ready', performance.now());
+  spatialAudio = ownDisposable(createSpatialAudio({ camera: sceneCore.camera }));
   ui.setLoading(0.12, '建立相机与空间坐标');
 
-  postprocessing = createPostprocessing(
+  postprocessing = ownDisposable(createPostprocessing(
     sceneCore.renderer,
     sceneCore.scene,
     sceneCore.camera,
     initialQuality,
-  );
-  starfield = createStarfield(sceneCore.scene, initialQuality);
+  ));
+  starfield = ownDisposable(createStarfield(sceneCore.scene, initialQuality));
   ui.setLoading(0.24, '生成分层星空');
 
   let textureTotal = 1;
   const fallbackTextures = new Set();
-  solarSystem = await createSolarSystem(sceneCore.scene, CELESTIAL_BODIES, {
+  solarSystem = ownDisposable(await createSolarSystem(sceneCore.scene, CELESTIAL_BODIES, {
     quality: initialQuality,
     renderer: sceneCore.renderer,
     camera: sceneCore.camera,
@@ -417,28 +513,29 @@ async function initialise() {
       ui.setLoading(0.28 + ratio * 0.43, `加载本地天体纹理 ${complete}/${total || textureTotal}`);
     },
     onTextureFallback: (filename) => fallbackTextures.add(filename),
-  });
+  }));
+  if (disposed) return;
 
-  satelliteSystem = createSatelliteSystem({
+  satelliteSystem = ownDisposable(createSatelliteSystem({
     scene: sceneCore.scene,
     solarSystem,
     materialSystem: solarSystem.materialSystem,
     quality: initialQuality,
     three: THREE,
-  });
+  }));
 
-  asteroidBelt = createAsteroidBelt(sceneCore.scene, initialQuality);
+  asteroidBelt = ownDisposable(createAsteroidBelt(sceneCore.scene, initialQuality));
   ui.setLoading(0.77, '布置非均匀小行星带');
 
   timeSystem = createTimeSystem();
   syncEphemerisPresentation();
-  performanceManager = createPerformanceManager(sceneCore.renderer, 'auto', {
+  performanceManager = ownDisposable(createPerformanceManager(sceneCore.renderer, 'auto', {
     onQualityChange: setSceneQuality,
-    onAutoDowngrade: (quality) => ui.toast(`为保持流畅，画质已自动调整为${quality === 'low' ? '低' : '中'}档`),
-  });
+    onAutoDowngrade: (quality) => ui.toast(`为保持流畅，画质已自动调整为${{ low: '低', medium: '中', high: '高', ultra: 'Ultra' }[quality]}档`),
+  }));
   setSceneQuality(performanceManager.quality);
 
-  cameraDirector = createCameraDirector({
+  cameraDirector = ownDisposable(createCameraDirector({
     camera: sceneCore.camera,
     controls: sceneCore.controls,
     solarSystem,
@@ -450,30 +547,34 @@ async function initialise() {
         solarSystem.getBodyPosition(id, audioFocusTarget);
         spatialAudio?.setFocusPosition(audioFocusTarget);
         spatialAudio?.playFlyby();
+        if (performanceManager?.quality === 'high' || performanceManager?.quality === 'ultra') {
+          void solarSystem.upgradeFocusedTexture(id);
+        }
         ui.showBody(BODY_BY_ID.get(id));
       } else {
         ui.hideInfo();
       }
     },
-  });
+  }));
 
-  interaction = createInteraction({
+  interaction = ownDisposable(createInteraction({
     canvas,
     camera: sceneCore.camera,
     solarSystem,
     onHover: (id, position) => ui.setHover(BODY_BY_ID.get(id), position),
     onHoverEnd: () => ui.hideHover(),
     onSelect: focusBody,
-  });
+  }));
   interaction.setEnabled(false);
 
-  ui.setQuality(performanceManager.quality);
+  ui.setQuality(performanceManager.quality, performanceManager.mode);
   ui.setDepthOfField({ enabled: depthOfFieldPreference, available: !coarsePointer });
-  depthCapabilityObserver = observeDepthOfFieldCapabilities({
+  ui.setDiagnosticsVisible(false);
+  depthCapabilityObserver = ownDisposable(observeDepthOfFieldCapabilities({
     coarsePointerQuery,
     reducedMotionQuery,
     onChange: handleDepthCapabilities,
-  });
+  }));
   ui.setScaleMode('display');
   ui.setMultiplier(1);
   ui.setPlaying(true);
@@ -484,11 +585,11 @@ async function initialise() {
   window.addEventListener('resize', handleResize, { passive: true });
   window.addEventListener('blur', handleWindowBlur);
   window.addEventListener('focus', handleWindowFocus);
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-  window.addEventListener('beforeunload', dispose, { once: true });
-
-  handleResize();
-  startRendering();
+  sceneCore.resize();
+  postprocessing.resize();
+  if (!runtimeLifecycle.hidden) sceneCore.clock.start();
+  runtimeLifecycle.start();
+  diagnostics.mark('render-loop-started', performance.now());
   await wait(180);
   if (disposed) return;
   ui.completeLoading();
@@ -516,7 +617,7 @@ async function initialise() {
 function dispose() {
   if (disposed) return;
   disposed = true;
-  stopRendering();
+  sceneCore?.clock.stop();
   if (resizeFrame) cancelAnimationFrame(resizeFrame);
   openingTweens.splice(0).forEach((tween) => tween.kill());
   window.removeEventListener('resize', handleResize);
@@ -524,26 +625,20 @@ function dispose() {
   window.removeEventListener('focus', handleWindowFocus);
   document.removeEventListener('visibilitychange', handleVisibilityChange);
   window.removeEventListener('beforeunload', dispose);
-  interaction?.dispose();
-  depthCapabilityObserver?.dispose();
+  runtimeLifecycle.dispose();
   depthCapabilityObserver = null;
-  cameraDirector?.dispose();
-  performanceManager?.dispose();
-  asteroidBelt?.dispose();
-  satelliteSystem?.dispose();
-  solarSystem?.dispose();
-  starfield?.dispose();
-  postprocessing?.dispose();
-  sceneCore?.dispose();
-  ui?.dispose();
-  spatialAudio?.dispose();
   spatialAudio = null;
   audioEnabled = false;
+  audioTogglePromise = null;
   delete window.solarExperience;
 }
 
-initialise().catch((error) => {
-  ui?.showError(error);
+document.addEventListener('visibilitychange', handleVisibilityChange);
+window.addEventListener('beforeunload', dispose, { once: true });
+handleVisibilityChange();
+pwaLifecycle.start();
+
+runtimeLifecycle.runInitialiser(initialise, (error) => ui?.showError(error)).catch((error) => {
   dispose();
   console.error('太阳系体验初始化失败', error);
 });
