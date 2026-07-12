@@ -175,9 +175,8 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
     return { oscillator, filter, gain };
   }
 
-  function createOriginalMusicTrack(audioContext, destination) {
+  function createOriginalMusicTrack(audioContext, destination, element = createAudioElement(ORIGINAL_TRACK_URL)) {
     if (typeof audioContext.createMediaElementSource !== 'function') return null;
-    const element = createAudioElement(ORIGINAL_TRACK_URL);
     if (!element) return null;
 
     try {
@@ -218,10 +217,12 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
   }
 
   function startOriginalMusic(track) {
-    if (!track?.element || typeof track.element.play !== 'function') return;
-    Promise.resolve(track.element.play()).catch(() => {
-      // Playback can still be denied by a browser; cues and synthesized ambience remain available.
-    });
+    if (!track?.element || typeof track.element.play !== 'function') return Promise.resolve(false);
+    try {
+      return Promise.resolve(track.element.play()).then(() => true, () => false);
+    } catch (error) {
+      return Promise.resolve(false);
+    }
   }
 
   function trackEnable(operation) {
@@ -286,6 +287,10 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
 
     const candidateGeneration = ++generation;
     pendingCandidate = candidate;
+    // This call must remain in the original click task: Safari and some mobile browsers
+    // reject HTMLMediaElement.play() once an awaited AudioContext resume has yielded.
+    const activatedTrack = { element: createAudioElement(ORIGINAL_TRACK_URL) };
+    const musicStart = startOriginalMusic(activatedTrack);
     return trackEnable((async () => {
       try {
         if (candidate.state === 'suspended' && typeof candidate.resume === 'function') {
@@ -304,7 +309,11 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
 
         const protectedOutput = createProtectedOutput(candidate);
         const ambient = createAmbientLayer(candidate, protectedOutput.destination);
-        const track = createOriginalMusicTrack(candidate, protectedOutput.destination);
+        const track = createOriginalMusicTrack(
+          candidate,
+          protectedOutput.destination,
+          activatedTrack.element,
+        );
         context = candidate;
         ambientOscillator = ambient.oscillator;
         ambientFilter = ambient.filter;
@@ -314,7 +323,7 @@ export function createSpatialAudio({ camera, audioContextFactory = createDefault
         compressor = protectedOutput.compressor;
         pendingCandidate = null;
         enabled = true;
-        startOriginalMusic(track);
+        void musicStart;
         if (!await reconcileVisibilityIntent(candidate, candidateGeneration)) {
           enabled = false;
           clearGraph();
