@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "publishedFileCount": 131,
-  "publishedBytes": 54573674,
+  "publishedBytes": 54574211,
   "payloadFileCount": 130,
-  "payloadBytes": 54542317,
+  "payloadBytes": 54542854,
   "lowPrecache": {
     "fileCount": 83,
-    "bytes": 10149705,
+    "bytes": 10150034,
     "budgetBytes": 26214400,
     "withinBudget": true,
     "files": [
@@ -98,7 +98,7 @@
   "mediumCore": {
     "definition": "all published files except on-demand high texture files and build-report.json",
     "fileCount": 110,
-    "bytes": 30764241,
+    "bytes": 30764778,
     "budgetBytes": 68157440,
     "withinBudget": true
   },
@@ -784,8 +784,8 @@
     },
     {
       "path": "src/systems/spatialAudio.js",
-      "bytes": 15673,
-      "sha256": "c157fe246371de4f65b86ff60342e4957c632f0cea0947a071dc7cfee38ca653"
+      "bytes": 16049,
+      "sha256": "5d4f87c97a52884b2b48bfd9b3a88bd84f61b140944acd73c99fd1896a1d0436"
     },
     {
       "path": "src/systems/starfield.js",
@@ -804,18 +804,18 @@
     },
     {
       "path": "src/ui/interface.js",
-      "bytes": 17470,
-      "sha256": "42a66417c6a121c59f92a0976e018170800df31258272b4e1859077b343d07ea"
+      "bytes": 17440,
+      "sha256": "a458466fb50d22efdb9373626d6c32282a091a2b091dfc5f9323fde4cde9a18d"
     },
     {
       "path": "style.css",
-      "bytes": 27347,
-      "sha256": "97a339dfcdcdec1f2c6f6da8588614ef2bce86a1a1c2894086de96681a040384"
+      "bytes": 27330,
+      "sha256": "a7abb3869ae9e5a3011f7d7179f32ee4743146a350d6f7d42fcbdfd052fe1d53"
     },
     {
       "path": "sw.js",
-      "bytes": 8271,
-      "sha256": "0ec8eba407f29889f1de6f138789b38aa15967ded4dfd2027df382d5e05bd77d"
+      "bytes": 8479,
+      "sha256": "e06378380d253327266de15869181da6270526b7393f5287bf468197d556a776"
     },
     {
       "path": "vendor/ATTRIBUTION.md",

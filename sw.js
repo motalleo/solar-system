@@ -205,6 +205,9 @@ async function textureCacheFirst(event) {
 
 async function audioCacheFirst(event) {
   const { request } = event;
+  // Native media elements request MP3 data in byte ranges. Do not store or replay
+  // a partial response as if it were the complete audio file.
+  if (request.headers?.has?.('range')) return fetch(request);
   const cache = await caches.open(AUDIO_CACHE);
   const cached = await cache.match(request);
   if (cached) return cached;

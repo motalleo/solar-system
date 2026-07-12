@@ -366,7 +366,6 @@ export function createInterface(bodies, callbacks = {}) {
   listen(elements.updateApp, 'click', () => callbacks.onUpdateApp?.());
   listen(elements.closeInfo, 'click', () => {
     hideInfo();
-    callbacks.onOverview?.();
   });
   listen(elements.overview, 'click', () => callbacks.onOverview?.());
   listen(elements.play, 'click', () => callbacks.onTogglePlay?.());
