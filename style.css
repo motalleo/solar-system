@@ -1237,7 +1237,6 @@ noscript {
   }
 
   .identity-mark,
-  #sound-button,
   #fullscreen-button {
     display: none;
   }
